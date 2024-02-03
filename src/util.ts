@@ -21,6 +21,10 @@ uint32_t next(void) {
 
 const u32max = (1 << 30) * 4;
 
+let globalID = 0;
+export function newID() {
+  return ++globalID;
+}
 
 /**
  * from https://zenn.dev/uhyo/articles/array-n-keys-yamero

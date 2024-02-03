@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { BaseScene } from './baseScene';
 import { Board } from './board';
+import * as U from './util'
 
 /*
  マス目がある。6x6 ぐらいか。
@@ -40,10 +41,10 @@ export class GameMain extends BaseScene {
       console.log({ m: "pointerdown", x: x, y: y, ix: ix, iy: iy });
       this.board.touchAt(ix, iy);
     });
-
   }
   objes: Phaser.GameObjects.Shape[] = [];
   update() {
     this.board.update();
+    const { w, h } = this.board.wh;
   }
 }

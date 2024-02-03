@@ -17,9 +17,15 @@ const depth = {
 
 export class GameMain extends BaseScene {
   constructor() {
+    console.log("GameMain.ctor");
     super("GameMain")
   }
-  preload() { }
+  preload() {
+    console.log("GameMain.preload");
+    for (const k of ["ta", "i", "tu"]) {
+      this.load.image(k, `assets/${k}.webp`);
+    }
+  }
   t0 = 0
   board = new Board((Math.random() * (1 << 31)) | 0);
 
@@ -33,7 +39,7 @@ export class GameMain extends BaseScene {
   create(data: { soundOn: boolean | undefined }) {
     this.t0 = (new Date()).getTime();
     const { width, height } = this.canvas();
-    this.board = new Board((Math.random() * (1 << 31)) | 0);
+    this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
     const rc = this.boardBBox
     const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 0.1)
     ui.setInteractive().on("pointerdown", (_: any, x: number, y: number) => {
@@ -57,9 +63,28 @@ export class GameMain extends BaseScene {
       this.add.line(rc.centerX, y, 0, 0, rc.width, 0, 0xffffff, 1);
     }
   }
-  objes: Phaser.GameObjects.Shape[] = [];
+  piecies: { [key: string]: Phaser.GameObjects.Sprite } = {};
+  dispPos(pos: { x: number, y: number }): [number, number] {
+    const rc = this.boardBBox
+    const { w, h } = this.board.wh;
+    return [
+      rc.left + rc.width / (w + 2) * (pos.x + 1.5),
+      rc.top + rc.height / (h + 2) * (pos.y + 1.5)
+    ]
+  }
   update() {
     this.board.update();
     const { w, h } = this.board.wh;
+    for (const p of this.board.pieces) {
+      let o = this.piecies[p.id];
+      if (o === null || o === undefined) {
+        o = this.add.sprite(100, 100, p.name);
+        o.setVisible(true);
+        this.piecies[p.id] = o;
+        console.log({ o: o, p: p });
+      }
+      const [x, y] = this.dispPos(p.pos)
+      o.setPosition(x, y);
+    }
   }
 }

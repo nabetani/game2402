@@ -1,10 +1,10 @@
 import * as U from './util'
 
-export const PName = {
-  none: 0,
-  ta: 1,
-  i: 2,
-  tu: 3,
+type PNameType = "ta" | "i" | "tu";
+export class PName {
+  static get ta(): PNameType { return "ta" }
+  static get i(): PNameType { return "i" }
+  static get tu(): PNameType { return "tu" }
 };
 
 export class DPos {
@@ -35,17 +35,17 @@ export class NoPos {
 
 export class Piece {
   id: integer
-  name: integer
-  pos: DPos | CPos | NoPos = new NoPos()
-  constructor(name: integer, pos: DPos | CPos | NoPos) {
+  name: PNameType
+  pos: DPos | CPos
+  constructor(name: PNameType, pos: DPos | CPos) {
     this.id = U.newID();
     this.pos = pos;
     this.name = name;
   }
-  static d(name: integer, x: integer, y: integer): Piece {
+  static d(name: PNameType, x: integer, y: integer): Piece {
     return new Piece(name, new DPos(x, y));
   }
-  static c(name: integer, x: number, y: number): Piece {
+  static c(name: PNameType, x: number, y: number): Piece {
     return new Piece(name, new CPos(x, y));
   }
 };
@@ -58,13 +58,13 @@ export class Board {
   initBoard() {
     const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
     const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
-    const p = this.rng.shuffle([PName.ta, PName.i, PName.tu]);
+    const p = this.rng.shuffle<PNameType>([PName.ta, PName.i, PName.tu]);
     const m = Math.min(x.length, y.length);
     this.pieces = []
     for (const i of U.range(0, m)) {
       this.pieces.push(Piece.d(p[i % p.length], x[i], y[i]));
     }
-    console.log(this.pieces)
+    console.log({ "Board.initBoard": this.pieces });
   }
 
   constructor(seed: integer) {

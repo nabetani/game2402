@@ -75,16 +75,26 @@ export class GameMain extends BaseScene {
   update() {
     this.board.update();
     const { w, h } = this.board.wh;
+    const checked: { [key: string]: boolean } = {};
+    for (const k of Object.keys(this.piecies)) {
+      checked[k] = false;
+    }
     for (const p of this.board.pieces) {
       let o = this.piecies[p.id];
+      checked[p.id] = true;
       if (o === null || o === undefined) {
         o = this.add.sprite(100, 100, p.name);
-        o.setVisible(true);
         this.piecies[p.id] = o;
         console.log({ o: o, p: p });
       }
       const [x, y] = this.dispPos(p.pos)
       o.setPosition(x, y);
+      o.setVisible(true);
+    }
+    for (const k of Object.keys(checked)) {
+      if (!checked[k]) {
+        this.piecies[k].setVisible(false);
+      }
     }
   }
 }

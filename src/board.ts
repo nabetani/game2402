@@ -74,8 +74,40 @@ export class Board {
 
   update() { }
 
+  removeP(x: integer, y: integer): Piece | null {
+    for (const i of this.pieces.keys()) {
+      const p = this.pieces[i];
+      if (p.pos.on && p.pos.x == x && p.pos.y == y) {
+        return this.pieces.splice(i, 1)[0]
+      }
+    }
+    return null
+  }
+
+  movePieces(x0: integer, y0: integer, dx: integer, dy: integer) {
+    const d = dx == 0 ? this.wh.h : this.wh.w;
+    let plist: Piece[] = [];
+    for (const i of U.range(1, d)) {
+      const x = x0 + dx * i;
+      const y = y0 + dy * i;
+      const p = this.removeP(x, y);
+      if (p != null) {
+        plist.push(p);
+      }
+    }
+    for (const i of plist.keys()) {
+      plist[i].pos = new DPos(x0 + (i + 1) * dx, y0 + (i + 1) * dy)
+    }
+    this.pieces.push(...plist);
+  }
+
   touchAt(x: number, y: number) {
     console.log({ m: "touchAt", x: x, y: y });
+    for (const i of U.range(0, 4)) {
+      const dx = [1, -1, 0, 0][i];
+      const dy = [0, 0, 1, -1][i];
+      this.movePieces(x, y, dx, dy);
+    }
   }
 }
 

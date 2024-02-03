@@ -61,6 +61,12 @@ export class Rng {
     }
   }
 
+  // a ≦ f ≦ b の数を返す
+  f(a: number, b: number): number {
+    const x = (this.u32 + this.u32 / b32Val) / b32Val;
+    return a + x * (b - a);
+  }
+
   // 0 ≦ f01 < 1 の数を返す
   get f01(): number {
     return (this.u32 + ((this.u32 & ~((1 << 11) - 1)) >>> 0) / b32Val) / b32Val

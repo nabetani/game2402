@@ -25,7 +25,9 @@ export class GameMain extends BaseScene {
 
   get boardBBox(): Phaser.Geom.Rectangle {
     const { width, height } = this.canvas();
-    return new Phaser.Geom.Rectangle(0, height - width, width, width);
+    const g = width * 0.1
+    const w = width - g * 2
+    return new Phaser.Geom.Rectangle(g, height - w - g, w, w);
   }
 
   create(data: { soundOn: boolean | undefined }) {
@@ -33,14 +35,27 @@ export class GameMain extends BaseScene {
     const { width, height } = this.canvas();
     this.board = new Board((Math.random() * (1 << 31)) | 0);
     const rc = this.boardBBox
-    const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 1)
+    const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 0.1)
     ui.setInteractive().on("pointerdown", (_: any, x: number, y: number) => {
       const { w, h } = this.board.wh;
-      const ix = Math.floor(x * w / rc.width);
-      const iy = Math.floor(y * w / rc.height);
+      const ix = Math.floor(x * (w + 2) / rc.width) - 1;
+      const iy = Math.floor(y * (h + 2) / rc.height) - 1;
       console.log({ m: "pointerdown", x: x, y: y, ix: ix, iy: iy });
       this.board.touchAt(ix, iy);
     });
+    this.drawBoard()
+  }
+  drawBoard() {
+    const { w, h } = this.board.wh;
+    const rc = this.boardBBox
+    for (const ix of U.range(0, w + 3)) {
+      const x = ix / (w + 2) * rc.width + rc.left
+      this.add.line(x, rc.centerY, 0, 0, 0, rc.height, 0xffffff, 1);
+    }
+    for (const iy of U.range(0, h + 3)) {
+      const y = iy / (h + 2) * rc.height + rc.top;
+      this.add.line(rc.centerX, y, 0, 0, rc.width, 0, 0xffffff, 1);
+    }
   }
   objes: Phaser.GameObjects.Shape[] = [];
   update() {

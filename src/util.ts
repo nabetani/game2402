@@ -1,25 +1,4 @@
-
-// https://prng.di.unimi.it/xoshiro128plusplus.c
-/*
-
-static inline uint32_t rotl(const uint32_t x, int k) {
-  return (x << k) | (x >> (32 - k));
-}
-static uint32_t s[4];
-uint32_t next(void) {
-  const uint32_t result = rotl(s[0] + s[3], 7) + s[0];
-  const uint32_t t = s[1] << 9;
-  s[2] ^= s[0];
-  s[3] ^= s[1];
-  s[1] ^= s[2];
-  s[0] ^= s[3];
-  s[2] ^= t;
-  s[3] = rotl(s[3], 11);
-  return result;
-}
-*/
-
-const u32max = (1 << 30) * 4;
+const b32Val = (1 << 30) * 4;
 
 let globalID = 0;
 export function newID() {
@@ -42,10 +21,30 @@ export function* rep<T>(count: integer, value: T) {
   }
 }
 
+// https://prng.di.unimi.it/xoshiro128plusplus.c
+/*
+
+static inline uint32_t rotl(const uint32_t x, int k) {
+  return (x << k) | (x >> (32 - k));
+}
+static uint32_t s[4];
+uint32_t next(void) {
+  const uint32_t result = rotl(s[0] + s[3], 7) + s[0];
+  const uint32_t t = s[1] << 9;
+  s[2] ^= s[0];
+  s[3] ^= s[1];
+  s[1] ^= s[2];
+  s[0] ^= s[3];
+  s[2] ^= t;
+  s[3] = rotl(s[3], 11);
+  return result;
+}
+*/
+
 const rotl = (x: number, k: number) => {
   x = x >>> 0;
   k = k >>> 0;
-  return (x << k) | (x >>> (32 - k)) >>> 0;
+  return ((x << k) | (x >>> (32 - k))) >>> 0;
 }
 export class Rng {
   s: number[] = []
@@ -64,7 +63,7 @@ export class Rng {
 
   // 0 ≦ f01 < 1 の数を返す
   get f01(): number {
-    return (this.u32 + ((this.u32 & ~((1 << 11) - 1)) >>> 0) / u32max) / u32max
+    return (this.u32 + ((this.u32 & ~((1 << 11) - 1)) >>> 0) / b32Val) / b32Val
   }
 
   // 0 ≦ n < sup の整数を返す。素朴に剰余なので若干偏る。

@@ -1,10 +1,14 @@
 import * as U from './util'
 
-type PNameType = "ta" | "i" | "tu";
+type PNameType = "ta" | "i" | "tu" | "t0" | "t1" | "t2";
 export class PName {
   static get ta(): PNameType { return "ta" }
   static get i(): PNameType { return "i" }
   static get tu(): PNameType { return "tu" }
+  static get t0(): PNameType { return "t0" }
+  static get t1(): PNameType { return "t1" }
+  static get t2(): PNameType { return "t2" }
+  static t(i: integer): PNameType { return [PName.t0, PName.t1, PName.t2][(i >>> 0 % 3)] }
 };
 
 export class DPos {
@@ -85,7 +89,7 @@ export class Board {
   }
 
   movePieces(x0: integer, y0: integer, dx: integer, dy: integer) {
-    const d = dx == 0 ? this.wh.h : this.wh.w;
+    const d = (dx == 0 ? this.wh.h : this.wh.w) + 1
     let plist: Piece[] = [];
     for (const i of U.range(1, d)) {
       const x = x0 + dx * i;

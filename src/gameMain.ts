@@ -22,7 +22,7 @@ export class GameMain extends BaseScene {
   }
   preload() {
     console.log("GameMain.preload");
-    for (const k of ["ta", "i", "tu"]) {
+    for (const k of ["ta", "i", "tu", "t0", "t1", "t2"]) {
       this.load.image(k, `assets/${k}.webp`);
     }
   }

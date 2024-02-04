@@ -39,7 +39,8 @@ export class GameMain extends BaseScene {
   create(data: { soundOn: boolean | undefined }) {
     this.t0 = (new Date()).getTime();
     const { width, height } = this.canvas();
-    this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
+    // this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
+    this.board = new Board(0);
     const rc = this.boardBBox
     const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 0.1)
     ui.setInteractive().on("pointerdown", (_: any, x: number, y: number) => {
@@ -79,7 +80,7 @@ export class GameMain extends BaseScene {
     for (const k of Object.keys(this.piecies)) {
       checked[k] = false;
     }
-    for (const [id, p] of Object.entries(this.board.pieces)) {
+    for (const [id, p] of this.board.pieces.entries()) {
       let o = this.piecies[id];
       checked[p.id] = true;
       if (o === null || o === undefined) {

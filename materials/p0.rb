@@ -9,4 +9,4 @@ L=6
   end
 end
 
-%x(convert tb7.png -resize #{W0}x#{H0} ../src/assets/t7.webp)
+%x(convert tmax.png -resize #{W0}x#{H0} ../src/assets/tmax.webp)

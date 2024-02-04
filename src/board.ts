@@ -83,6 +83,19 @@ export class Board {
     this.rng = new U.Rng([seed]);
     this.initBoard()
   }
+  lessUsedNames(): PNameType[] {
+    let u: { [key: string]: [PNameType, number] } = {}
+    for (const t of [PName.ta, PName.i, PName.tu]) {
+      u[t] = [t, this.rng.f01]
+    }
+    for (const p of Object.values(this.pieces)) {
+      const o = u[p.name]
+      if (o) { ++o[1] }
+    }
+    const r = Object.values(u)
+    r.sort((a, b): number => a[1] - b[1])
+    return r.map((a): PNameType => a[0])
+  }
   add(): boolean {
     const { w, h } = this.wh
     let pos: { [key: string]: integer } = {}
@@ -99,7 +112,7 @@ export class Board {
     const posAdd = this.rng.sel(Object.values(pos))
     const x = posAdd % w
     const y = (posAdd - x) / w
-    const names = this.rng.shuffle([PName.ta, PName.i, PName.tu])
+    const names = this.lessUsedNames()
     for (const name of names) {
       if (!this.canFusionTights(name, x, y)) {
         this.addPiece(Piece.d(name, x, y))

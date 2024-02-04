@@ -64,7 +64,7 @@ export class GameMain extends BaseScene {
       this.add.line(rc.centerX, y, 0, 0, rc.width, 0, 0xffffff, 1);
     }
   }
-  piecies: { [key: string]: Phaser.GameObjects.Sprite } = {};
+  piecies = new Map<string, Phaser.GameObjects.Sprite>();
   dispPos(pos: { x: number, y: number }): [number, number] {
     const rc = this.boardBBox
     const { w, h } = this.board.wh;
@@ -77,15 +77,15 @@ export class GameMain extends BaseScene {
     this.board.update();
     const { w, h } = this.board.wh;
     const checked: { [key: string]: boolean } = {};
-    for (const k of Object.keys(this.piecies)) {
+    for (const k of this.piecies.keys()) {
       checked[k] = false;
     }
     for (const [id, p] of this.board.pieces.entries()) {
-      let o = this.piecies[id];
+      let o = this.piecies.get(id);
       checked[p.id] = true;
       if (o === null || o === undefined) {
         o = this.add.sprite(100, 100, p.name);
-        this.piecies[p.id] = o;
+        this.piecies.set(p.id, o);
         console.log({ o: o, p: p });
       }
       const [x, y] = this.dispPos(p.pos)
@@ -94,7 +94,7 @@ export class GameMain extends BaseScene {
     }
     for (const k of Object.keys(checked)) {
       if (!checked[k]) {
-        this.piecies[k].setVisible(false);
+        this.piecies.get(k)!.setVisible(false);
       }
     }
   }

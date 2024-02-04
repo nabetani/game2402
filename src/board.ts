@@ -83,8 +83,25 @@ export class Board {
     this.rng = new U.Rng([seed]);
     this.initBoard()
   }
-  add() {
-
+  add(): boolean {
+    const { w, h } = this.wh
+    let pos: { [key: string]: integer } = {}
+    for (const i of U.range(0, w * h)) {
+      pos[i] = i
+    }
+    for (const p of Object.values(this.pieces)) {
+      const i = p.pos.x + p.pos.y * w
+      delete pos[i]
+    }
+    if (Object.entries(pos).length == 0) {
+      return false
+    }
+    const posAdd = this.rng.sel(Object.values(pos))
+    const x = posAdd % w
+    const y = (posAdd - x) / w
+    const name = this.rng.sel([PName.ta, PName.i, PName.tu])
+    this.addPiece(Piece.d(name, x, y))
+    return true
   }
 
   update() {

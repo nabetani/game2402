@@ -229,7 +229,7 @@ export class Board {
       }
       const { x, y } = p.pos
       const fusionIDs = [id, ...this.fusionIndices(x, y, 1, 0), ...this.fusionIndices(x, y, 0, 1)];
-      if (Object.keys(fusionIDs).length < 2) {
+      if (fusionIDs.length < 2) {
         continue
       }
       willKilled.push(...fusionIDs)

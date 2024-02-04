@@ -1,14 +1,20 @@
 import * as U from './util'
 
-type PNameType = "ta" | "i" | "tu" | "t0" | "t1" | "t2";
+type PNameType = "ta_1" | "i_1" | "tu_1" |
+  "ta_2" | "i_2" | "tu_2" |
+  "ta_3" | "i_3" | "tu_3" |
+  "ta_4" | "i_4" | "tu_4"
+
+const getLevel = (n: PNameType): integer => {
+  return parseInt(n.split("_")[1], 10) - 1;
+}
 export class PName {
-  static get ta(): PNameType { return "ta" }
-  static get i(): PNameType { return "i" }
-  static get tu(): PNameType { return "tu" }
-  static get t0(): PNameType { return "t0" }
-  static get t1(): PNameType { return "t1" }
-  static get t2(): PNameType { return "t2" }
-  static t(i: integer): PNameType { return [PName.t0, PName.t1, PName.t2][(i >>> 0 % 3)] }
+  static ta_: PNameType[] = ["ta_1", "ta_2", "ta_3", "ta_4"]
+  static i_: PNameType[] = ["i_1", "i_2", "i_3", "i_4"]
+  static tu_: PNameType[] = ["tu_1", "tu_2", "tu_3", "tu_4"]
+  static ta(n: integer): PNameType { return this.ta_[(n >>> 0) % this.ta_.length] }
+  static i(n: integer): PNameType { return this.i_[(n >>> 0) % this.i_.length] }
+  static tu(n: integer): PNameType { return this.tu_[(n >>> 0) % this.tu_.length] }
 };
 
 export class DPos {
@@ -70,7 +76,7 @@ export class Board {
   initBoard() {
     const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
     const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
-    const p = this.rng.shuffle<PNameType>([PName.ta, PName.i, PName.tu]);
+    const p = this.rng.shuffle<PNameType>([PName.ta(0), PName.i(0), PName.tu(0)]);
     const m = Math.min(x.length, y.length);
     this.pieces.clear();
     for (const i of U.range(0, m)) {
@@ -83,9 +89,9 @@ export class Board {
     this.rng = new U.Rng([seed]);
     this.initBoard()
   }
-  lessUsedNames(): PNameType[] {
+  lessUsedNames(level: integer): PNameType[] {
     let u = new Map<string, [PNameType, number]>();
-    for (const t of [PName.ta, PName.i, PName.tu]) {
+    for (const t of [PName.ta(level), PName.i(level), PName.tu(level)]) {
       u.set(t, [t, this.rng.f01]);
     }
     for (const p of this.pieces.values()) {
@@ -112,7 +118,7 @@ export class Board {
     const posAdd = this.rng.sel([...pos.values()]);
     const x = posAdd % w
     const y = (posAdd - x) / w
-    const names = this.lessUsedNames()
+    const names = this.lessUsedNames(0)
     for (const name of names) {
       if (!this.canFusionTights(name, x, y)) {
         this.addPiece(Piece.d(name, x, y))
@@ -167,9 +173,7 @@ export class Board {
       this.movePieces(x, y, dx, dy);
     }
   }
-  // pAt(x: integer, y: integer): Piece | null {
-  // }
-  fusionIndices(x0: number, y0: number, dx: number, dy: number): string[] {
+  fusionIndices(lev: number, x0: number, y0: number, dx: number, dy: number): string[] {
     let r: string[] = [];
     for (const [id, p] of this.pieces.entries()) {
       const { x, y } = p.pos
@@ -183,11 +187,12 @@ export class Board {
     if (a == undefined || b == undefined) {
       return [];
     }
-    const names = a.name + " " + b.name;
-    if (names != "ta tu" && names != "tu ta") {
-      return [];
+    const ta = PName.ta(lev)
+    const tu = PName.tu(lev)
+    if ((a.name == ta && b.name == tu) || (a.name == tu && b.name == ta)) {
+      return r;
     }
-    return r;
+    return []
   }
   pieceAt(x: integer, y: integer): Piece | null {
     for (const p of this.pieces.values()) {
@@ -198,6 +203,7 @@ export class Board {
     return null
   }
   canFusionTights(name: PNameType, x: integer, y: integer): boolean {
+    const level = getLevel(name);
     const impl = (d0: integer, n0: PNameType, d1: integer, n1: PNameType): boolean => {
       for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
         const match = (d: integer, n: PNameType): boolean => {
@@ -211,32 +217,35 @@ export class Board {
       return false
     }
     switch (name) {
-      case PName.i:
-        return impl(-1, PName.ta, 1, PName.tu);
-      case PName.ta:
-        return impl(1, PName.i, 2, PName.tu);
-      case PName.tu:
-        return impl(1, PName.i, 2, PName.ta);
+      case PName.i(level):
+        return impl(-1, PName.ta(level), 1, PName.tu(level));
+      case PName.ta(level):
+        return impl(1, PName.i(level), 2, PName.tu(level));
+      case PName.tu(level):
+        return impl(1, PName.i(level), 2, PName.ta(level));
       default:
-        throw `unexpectd pname:${name}`
+        throw `unexpectd pname:${name}, level:${level}`
     }
   }
   fusionTights() {
     let willKilled: string[] = [];
     for (const [id, p] of this.pieces.entries()) {
-      if (p.name != PName.i) {
+      if (p.name[0] != "i") {
         continue
       }
       const { x, y } = p.pos
-      const fusionIDs = [id, ...this.fusionIndices(x, y, 1, 0), ...this.fusionIndices(x, y, 0, 1)];
+      const lev = getLevel(p.name);
+      const fusionIDs = [id, ...this.fusionIndices(lev, x, y, 1, 0), ...this.fusionIndices(lev, x, y, 0, 1)];
       if (fusionIDs.length < 2) {
         continue
       }
       willKilled.push(...fusionIDs)
-      this.addPiece(Piece.p(PName.t0, p.pos))
+      const name = this.lessUsedNames(getLevel(p.name) + 1)[0];
+      this.addPiece(Piece.p(name, p.pos))
     }
     willKilled.forEach((id) => this.pieces.delete(id))
   }
+
 
   touchAt(x: integer, y: integer) {
     console.log({ m: "touchAt", x: x, y: y });

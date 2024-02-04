@@ -76,13 +76,13 @@ export class GameMain extends BaseScene {
   update() {
     this.board.update();
     const { w, h } = this.board.wh;
-    const checked: { [key: string]: boolean } = {};
+    const unchecked = new Set<string>();
     for (const k of this.piecies.keys()) {
-      checked[k] = false;
+      unchecked.add(k);
     }
     for (const [id, p] of this.board.pieces.entries()) {
       let o = this.piecies.get(id);
-      checked[p.id] = true;
+      unchecked.delete(p.id)
       if (o === null || o === undefined) {
         o = this.add.sprite(100, 100, p.name);
         this.piecies.set(p.id, o);
@@ -92,10 +92,8 @@ export class GameMain extends BaseScene {
       o.setPosition(x, y);
       o.setVisible(true);
     }
-    for (const k of Object.keys(checked)) {
-      if (!checked[k]) {
-        this.piecies.get(k)!.setVisible(false);
-      }
+    for (const k of unchecked.values()) {
+      this.piecies.get(k)!.setVisible(false);
     }
   }
 }

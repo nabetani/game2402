@@ -79,8 +79,8 @@ export class GameMain extends BaseScene {
     for (const k of Object.keys(this.piecies)) {
       checked[k] = false;
     }
-    for (const p of this.board.pieces) {
-      let o = this.piecies[p.id];
+    for (const [id, p] of Object.entries(this.board.pieces)) {
+      let o = this.piecies[id];
       checked[p.id] = true;
       if (o === null || o === undefined) {
         o = this.add.sprite(100, 100, p.name);

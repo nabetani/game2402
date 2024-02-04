@@ -2,7 +2,7 @@ const b32Val = (1 << 30) * 4;
 
 let globalID = 0;
 export function newID() {
-  return ++globalID;
+  return `id_${(++globalID).toString(36)}`
 }
 
 /**

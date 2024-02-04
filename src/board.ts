@@ -38,7 +38,7 @@ export class NoPos {
 }
 
 export class Piece {
-  id: integer
+  id: string
   name: PNameType
   pos: DPos | CPos
   constructor(name: PNameType, pos: DPos | CPos) {
@@ -60,16 +60,21 @@ export class Piece {
 export class Board {
   get wh() { return { w: 6, h: 6 } };
   rng: U.Rng
-  pieces: Piece[] = []
+  pieces: { [key: string]: Piece } = {};
+  tick: integer = 0
+
+  addPiece(p: Piece) {
+    this.pieces[p.id] = p;
+  }
 
   initBoard() {
     const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
     const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
     const p = this.rng.shuffle<PNameType>([PName.ta, PName.i, PName.tu]);
     const m = Math.min(x.length, y.length);
-    this.pieces = []
+    this.pieces = {}
     for (const i of U.range(0, m)) {
-      this.pieces.push(Piece.d(p[i % p.length], x[i], y[i]));
+      this.addPiece(Piece.d(p[i % p.length], x[i], y[i]));
     }
     console.log({ "Board.initBoard": this.pieces });
   }
@@ -78,14 +83,23 @@ export class Board {
     this.rng = new U.Rng([seed]);
     this.initBoard()
   }
+  add() {
 
-  update() { }
+  }
+
+  update() {
+    ++this.tick;
+    if (this.tick % 60 == 0) {
+      this.add();
+    }
+
+  }
 
   removeP(x: integer, y: integer): Piece | null {
-    for (const i of this.pieces.keys()) {
-      const p = this.pieces[i];
+    for (const [id, p] of Object.entries(this.pieces)) {
       if (p.pos.on && p.pos.x == x && p.pos.y == y) {
-        return this.pieces.splice(i, 1)[0]
+        delete this.pieces[id];
+        return p
       }
     }
     return null
@@ -105,7 +119,7 @@ export class Board {
     for (const i of plist.keys()) {
       plist[i].pos = new DPos(x0 + (i + 1) * dx, y0 + (i + 1) * dy)
     }
-    this.pieces.push(...plist);
+    plist.forEach((p) => { this.addPiece(p) })
   }
   gather(x: integer, y: integer) {
     for (const i of U.range(0, 4)) {
@@ -116,13 +130,12 @@ export class Board {
   }
   // pAt(x: integer, y: integer): Piece | null {
   // }
-  fusionIndices(x0: number, y0: number, dx: number, dy: number): integer[] {
-    let r: integer[] = [];
-    for (const i of this.pieces.keys()) {
-      const p = this.pieces[i];
+  fusionIndices(x0: number, y0: number, dx: number, dy: number): string[] {
+    let r: string[] = [];
+    for (const [id, p] of Object.entries(this.pieces)) {
       const { x, y } = p.pos
       if (Math.abs(x - x0) == dx && Math.abs(y - y0) == dy) {
-        r.push(i)
+        r.push(id)
       }
     }
     if (r.length != 2) { return [] }
@@ -136,22 +149,22 @@ export class Board {
   }
   fusionTights() {
     let fusioned: Piece[] = [];
-    let willKilled: integer[] = [];
-    for (const i of this.pieces.keys()) {
-      const p = this.pieces[i];
+    let willKilled: string[] = [];
+    for (const [id, p] of Object.entries(this.pieces)) {
       if (p.name != PName.i) {
         continue
       }
       const { x, y } = p.pos
-      const fusionIx = [i, ...this.fusionIndices(x, y, 1, 0), ...this.fusionIndices(x, y, 0, 1)];
-      if (fusionIx.length < 2) {
+      const fusionIDs = [id, ...this.fusionIndices(x, y, 1, 0), ...this.fusionIndices(x, y, 0, 1)];
+      if (Object.keys(fusionIDs).length < 2) {
         continue
       }
-      willKilled.push(...fusionIx)
-      fusioned.push(Piece.p(PName.t0, p.pos))
+      willKilled.push(...fusionIDs)
+      this.addPiece(Piece.p(PName.t0, p.pos))
     }
-    this.pieces = this.pieces.filter((v, ix) => willKilled.indexOf(ix) < 0)
-    this.pieces.push(...fusioned)
+    willKilled.forEach((ix) => {
+      delete this.pieces[ix]
+    })
   }
 
   touchAt(x: integer, y: integer) {

@@ -84,15 +84,15 @@ export class Board {
     this.initBoard()
   }
   lessUsedNames(): PNameType[] {
-    let u: { [key: string]: [PNameType, number] } = {}
+    let u = new Map<string, [PNameType, number]>();
     for (const t of [PName.ta, PName.i, PName.tu]) {
-      u[t] = [t, this.rng.f01]
+      u.set(t, [t, this.rng.f01]);
     }
     for (const p of this.pieces.values()) {
-      const o = u[p.name]
-      if (o) { ++o[1] }
+      const o = u.get(p.name);
+      if (o) { o[1] += 1 }
     }
-    const r = Object.values(u)
+    const r = [...u.values()]
     r.sort((a, b): number => a[1] - b[1])
     return r.map((a): PNameType => a[0])
   }

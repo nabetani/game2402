@@ -52,6 +52,9 @@ export class Piece {
   static c(name: PNameType, x: number, y: number): Piece {
     return new Piece(name, new CPos(x, y));
   }
+  static p(name: PNameType, pos: DPos | CPos): Piece {
+    return new Piece(name, pos);
+  }
 };
 
 export class Board {
@@ -104,14 +107,57 @@ export class Board {
     }
     this.pieces.push(...plist);
   }
-
-  touchAt(x: number, y: number) {
-    console.log({ m: "touchAt", x: x, y: y });
+  gather(x: integer, y: integer) {
     for (const i of U.range(0, 4)) {
       const dx = [1, -1, 0, 0][i];
       const dy = [0, 0, 1, -1][i];
       this.movePieces(x, y, dx, dy);
     }
+  }
+  // pAt(x: integer, y: integer): Piece | null {
+  // }
+  fusionIndices(x0: number, y0: number, dx: number, dy: number): integer[] {
+    let r: integer[] = [];
+    for (const i of this.pieces.keys()) {
+      const p = this.pieces[i];
+      const { x, y } = p.pos
+      if (Math.abs(x - x0) == dx && Math.abs(y - y0) == dy) {
+        r.push(i)
+      }
+    }
+    if (r.length != 2) { return [] }
+    const a = this.pieces[r[0]];
+    const b = this.pieces[r[1]];
+    const names = a.name + " " + b.name;
+    if (names != "ta tu" && names != "tu ta") {
+      return [];
+    }
+    return r;
+  }
+  fusionTights() {
+    let fusioned: Piece[] = [];
+    let willKilled: integer[] = [];
+    for (const i of this.pieces.keys()) {
+      const p = this.pieces[i];
+      if (p.name != PName.i) {
+        continue
+      }
+      const { x, y } = p.pos
+      const fusionIx = [i, ...this.fusionIndices(x, y, 1, 0), ...this.fusionIndices(x, y, 0, 1)];
+      if (fusionIx.length < 2) {
+        continue
+      }
+      willKilled.push(...fusionIx)
+      fusioned.push(Piece.p(PName.t0, p.pos))
+    }
+    this.pieces = this.pieces.filter((v, ix) => willKilled.indexOf(ix) < 0)
+    this.pieces.push(...fusioned)
+  }
+
+  touchAt(x: integer, y: integer) {
+    console.log({ m: "touchAt", x: x, y: y });
+    this.gather(x, y);
+    this.fusionTights();
   }
 }
 

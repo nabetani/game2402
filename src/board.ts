@@ -99,17 +99,26 @@ export class Board {
     const posAdd = this.rng.sel(Object.values(pos))
     const x = posAdd % w
     const y = (posAdd - x) / w
-    const name = this.rng.sel([PName.ta, PName.i, PName.tu])
-    this.addPiece(Piece.d(name, x, y))
+    const names = this.rng.shuffle([PName.ta, PName.i, PName.tu])
+    for (const name of names) {
+      if (!this.canFusionTights(name, x, y)) {
+        this.addPiece(Piece.d(name, x, y))
+        return true;
+      }
+    }
+    this.addPiece(Piece.d(names[0], x, y))
     return true
   }
 
   update() {
     ++this.tick;
-    if (this.tick % 60 == 0) {
-      this.add();
+    const N = 120
+    if (this.tick % N == 0) {
+      this.add()
     }
-
+    if (this.tick % N == N / 2) {
+      this.fusionTights()
+    }
   }
 
   removeP(x: integer, y: integer): Piece | null {
@@ -164,8 +173,39 @@ export class Board {
     }
     return r;
   }
+  pieceAt(x: integer, y: integer): Piece | null {
+    for (const p of Object.values(this.pieces)) {
+      if (p.pos.x == x && p.pos.y == y) {
+        return p
+      }
+    }
+    return null
+  }
+  canFusionTights(name: PNameType, x: integer, y: integer): boolean {
+    const impl = (d0: integer, n0: PNameType, d1: integer, n1: PNameType): boolean => {
+      for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+        const match = (d: integer, n: PNameType): boolean => {
+          const p = this.pieceAt(x + dx * d, y + dy * d);
+          return p != null && p.name == n
+        }
+        if (!match(d0, n0)) { continue }
+        if (!match(d1, n1)) { continue }
+        return true
+      }
+      return false
+    }
+    switch (name) {
+      case PName.i:
+        return impl(-1, PName.ta, 1, PName.tu);
+      case PName.ta:
+        return impl(1, PName.i, 2, PName.tu);
+      case PName.tu:
+        return impl(1, PName.i, 2, PName.ta);
+      default:
+        throw `unexpectd pname:${name}`
+    }
+  }
   fusionTights() {
-    let fusioned: Piece[] = [];
     let willKilled: string[] = [];
     for (const [id, p] of Object.entries(this.pieces)) {
       if (p.name != PName.i) {

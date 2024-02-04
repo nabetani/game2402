@@ -98,18 +98,18 @@ export class Board {
   }
   add(): boolean {
     const { w, h } = this.wh
-    let pos: { [key: string]: integer } = {}
+    let pos = new Set<integer>()
     for (const i of U.range(0, w * h)) {
-      pos[i] = i
+      pos.add(i);
     }
     for (const p of this.pieces.values()) {
       const i = p.pos.x + p.pos.y * w
-      delete pos[i]
+      pos.delete(i);
     }
-    if (Object.entries(pos).length == 0) {
+    if (pos.size == 0) {
       return false
     }
-    const posAdd = this.rng.sel(Object.values(pos))
+    const posAdd = this.rng.sel([...pos.values()]);
     const x = posAdd % w
     const y = (posAdd - x) / w
     const names = this.lessUsedNames()

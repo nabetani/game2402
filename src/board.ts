@@ -71,9 +71,32 @@ export class Piece {
   }
 };
 
+abstract class Phase {
+  tick: integer = 0
+  board: Board
+  abstract update(): void
+  constructor(board: Board) {
+    this.board = board
+  }
+}
+
+class ProducePhase extends Phase {
+  constructor(board: Board) {
+    super(board)
+  }
+  update(): void {
+    ++this.tick
+    const N = 120
+    if (this.tick % N == 0) {
+      this.board.add()
+    }
+  }
+}
+
 export class Board {
   static get maxLevel(): integer { return 2 }
   get wh() { return { w: 6, h: 6 } };
+  phase: Phase = new ProducePhase(this)
   rng: U.Rng
   pieces: Map<string, Piece> = new Map<string, Piece>();
   tick: integer = 0
@@ -111,7 +134,7 @@ export class Board {
     r.sort((a, b): number => a[1] - b[1])
     return r.map((a): PNameType => a[0])
   }
-  add(): boolean {
+  add() {
     const { w, h } = this.wh
     let pos = new Set<integer>()
     for (const i of U.range(0, w * h)) {
@@ -122,7 +145,7 @@ export class Board {
       pos.delete(i);
     }
     if (pos.size == 0) {
-      return false
+      return
     }
     const posAdd = this.rng.sel([...pos.values()]);
     const x = posAdd % w
@@ -131,22 +154,15 @@ export class Board {
     for (const name of names) {
       if (!this.canFusionTights(name, x, y)) {
         this.addPiece(Piece.d(name, x, y))
-        return true;
+        return;
       }
     }
     this.addPiece(Piece.d(names[0], x, y))
-    return true
+    // this.phase = new FusionPhase(this);
   }
 
   update() {
-    ++this.tick;
-    const N = 120
-    if (this.tick % N == 0) {
-      this.add()
-    }
-    if (this.tick % N == N / 2) {
-      this.fusionTights()
-    }
+    this.phase.update()
   }
 
   removeP(x: integer, y: integer): Piece | null {

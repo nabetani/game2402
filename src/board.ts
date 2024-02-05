@@ -3,15 +3,18 @@ import * as U from './util'
 type PNameType = "ta_1" | "i_1" | "tu_1" |
   "ta_2" | "i_2" | "tu_2" |
   "ta_3" | "i_3" | "tu_3" |
-  "ta_4" | "i_4" | "tu_4"
+  "ta_4" | "i_4" | "tu_4" |
+  "ta_5" | "i_5" | "tu_5" |
+  "ta_6" | "i_6" | "tu_6" |
+  "tmax"
 
 const getLevel = (n: PNameType): integer => {
   return parseInt(n.split("_")[1], 10) - 1;
 }
 export class PName {
-  static ta_: PNameType[] = ["ta_1", "ta_2", "ta_3", "ta_4"]
-  static i_: PNameType[] = ["i_1", "i_2", "i_3", "i_4"]
-  static tu_: PNameType[] = ["tu_1", "tu_2", "tu_3", "tu_4"]
+  static ta_: PNameType[] = ["ta_1", "ta_2", "ta_3", "ta_4", "ta_5", "ta_6"]
+  static i_: PNameType[] = ["i_1", "i_2", "i_3", "i_4", "i_5", "i_6"]
+  static tu_: PNameType[] = ["tu_1", "tu_2", "tu_3", "tu_4", "tu_5", "tu_6"]
   static ta(n: integer): PNameType { return this.ta_[(n >>> 0) % this.ta_.length] }
   static i(n: integer): PNameType { return this.i_[(n >>> 0) % this.i_.length] }
   static tu(n: integer): PNameType { return this.tu_[(n >>> 0) % this.tu_.length] }
@@ -64,6 +67,7 @@ export class Piece {
 };
 
 export class Board {
+  static get maxLevel(): integer { return 6 }
   get wh() { return { w: 6, h: 6 } };
   rng: U.Rng
   pieces: Map<string, Piece> = new Map<string, Piece>();

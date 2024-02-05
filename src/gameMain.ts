@@ -22,8 +22,9 @@ export class GameMain extends BaseScene {
   }
   preload() {
     console.log("GameMain.preload");
+    this.load.image("tmax", `assets/tmax.webp`);
     for (const k of ["ta", "i", "tu"]) {
-      for (const i of U.range(1, 4 + 1)) {
+      for (const i of U.range(1, Board.maxLevel + 1)) {
         const name = `${k}_${i}`
         this.load.image(name, `assets/${name}.webp`);
       }

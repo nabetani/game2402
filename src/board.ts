@@ -15,9 +15,14 @@ export class PName {
   static ta_: PNameType[] = ["ta_1", "ta_2", "ta_3", "ta_4", "ta_5", "ta_6"]
   static i_: PNameType[] = ["i_1", "i_2", "i_3", "i_4", "i_5", "i_6"]
   static tu_: PNameType[] = ["tu_1", "tu_2", "tu_3", "tu_4", "tu_5", "tu_6"]
-  static ta(n: integer): PNameType { return this.ta_[(n >>> 0) % this.ta_.length] }
-  static i(n: integer): PNameType { return this.i_[(n >>> 0) % this.i_.length] }
-  static tu(n: integer): PNameType { return this.tu_[(n >>> 0) % this.tu_.length] }
+  static pname(names: PNameType[], level: integer): PNameType {
+    level = level >>> 0;
+    if (Board.maxLevel <= level) { return "tmax" };
+    return names[level]
+  }
+  static ta(n: integer): PNameType { return this.pname(this.ta_, n) }
+  static i(n: integer): PNameType { return this.pname(this.i_, n) }
+  static tu(n: integer): PNameType { return this.pname(this.tu_, n) }
 };
 
 export class DPos {
@@ -67,7 +72,7 @@ export class Piece {
 };
 
 export class Board {
-  static get maxLevel(): integer { return 6 }
+  static get maxLevel(): integer { return 2 }
   get wh() { return { w: 6, h: 6 } };
   rng: U.Rng
   pieces: Map<string, Piece> = new Map<string, Piece>();

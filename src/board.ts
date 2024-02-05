@@ -60,6 +60,12 @@ export class Piece {
     this.pos = pos;
     this.name = name;
   }
+  dpos(): DPos {
+    return new DPos(this.pos.x, this.pos.y)
+  }
+  cpos(): CPos {
+    return new CPos(this.pos.x, this.pos.y)
+  }
   static d(name: PNameType, x: integer, y: integer): Piece {
     return new Piece(name, new DPos(x, y));
   }
@@ -78,18 +84,66 @@ abstract class Phase {
   constructor(board: Board) {
     this.board = board
   }
+  abstract get movings(): Piece[]
+}
+
+type Move = {
+  x: integer
+  y: integer
+  p: Piece
+}
+
+class GatherPhase extends Phase {
+  moves: Move[]
+  constructor(board: Board, x: integer, y: integer) {
+    super(board)
+    this.moves = board.getMoves(x, y)
+  }
+  get movings(): Piece[] {
+    return this.moves.map((e) => e.p)
+  }
+  update(): void {
+    ++this.tick
+    const n = 10;
+    const t = n - this.tick
+    const r = (t / (t + 1)) ** 3
+    for (const m of this.moves) {
+      m.p.pos.x = m.x + (m.p.pos.x - m.x) * r
+      m.p.pos.y = m.y + (m.p.pos.y - m.y) * r
+    }
+    if (t == 0) {
+      for (const m of this.moves) {
+        m.p.pos = m.p.dpos()
+        this.board.addPiece(m.p)
+      }
+      this.board.phase = new FusionPhase(this.board)
+    }
+  }
+}
+
+class FusionPhase extends Phase {
+  update(): void {
+    const { mate, pro } = this.board.fusionTights();
+    pro.forEach((p) => this.board.addPiece(p));
+    if (pro.length == 0) {
+      this.board.phase = new ProducePhase(this.board);
+    }
+  }
+  get movings(): Piece[] {
+    return []
+  }
 }
 
 class ProducePhase extends Phase {
-  constructor(board: Board) {
-    super(board)
-  }
   update(): void {
     ++this.tick
     const N = 120
     if (this.tick % N == 0) {
       this.board.add()
     }
+  }
+  get movings(): Piece[] {
+    return []
   }
 }
 
@@ -104,6 +158,11 @@ export class Board {
   addPiece(p: Piece) {
     this.pieces.set(p.id, p)
   }
+
+  get movings(): Piece[] {
+    return this.phase.movings
+  }
+
 
   initBoard() {
     const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
@@ -175,28 +234,29 @@ export class Board {
     return null
   }
 
-  movePieces(x0: integer, y0: integer, dx: integer, dy: integer) {
-    const d = (dx == 0 ? this.wh.h : this.wh.w) + 1
-    let plist: Piece[] = [];
-    for (const i of U.range(1, d)) {
-      const x = x0 + dx * i;
-      const y = y0 + dy * i;
-      const p = this.removeP(x, y);
-      if (p != null) {
-        plist.push(p);
-      }
-    }
-    for (const i of plist.keys()) {
-      plist[i].pos = new DPos(x0 + (i + 1) * dx, y0 + (i + 1) * dy)
-    }
-    plist.forEach((p) => { this.addPiece(p) })
-  }
-  gather(x: integer, y: integer) {
+  getMoves(x0: integer, y0: integer): Move[] {
+    let r: Move[] = []
     for (const i of U.range(0, 4)) {
       const dx = [1, -1, 0, 0][i];
       const dy = [0, 0, 1, -1][i];
-      this.movePieces(x, y, dx, dy);
+      const d = (dx == 0 ? this.wh.h : this.wh.w) + 1
+      let plist: Piece[] = [];
+      for (const i of U.range(1, d)) {
+        const x = x0 + dx * i;
+        const y = y0 + dy * i;
+        const p = this.removeP(x, y);
+        if (p != null) {
+          p.pos = p.cpos()
+          plist.push(p);
+        }
+      }
+      for (const i of plist.keys()) {
+        const m = { x: x0 + (i + 1) * dx, y: y0 + (i + 1) * dy, p: plist[i] }
+        r.push(m)
+      }
     }
+    console.log(r)
+    return r
   }
   fusionIndices(lev: number, x0: number, y0: number, dx: number, dy: number): string[] {
     let r: string[] = [];
@@ -252,8 +312,9 @@ export class Board {
         throw `unexpectd pname:${name}, level:${level}`
     }
   }
-  fusionTights() {
-    let willKilled: string[] = [];
+  fusionTights(): { mate: string[], pro: Piece[] } {
+    let mate: string[] = [];
+    let pro: Piece[] = [];
     for (const [id, p] of this.pieces.entries()) {
       if (p.name[0] != "i") {
         continue
@@ -264,18 +325,17 @@ export class Board {
       if (fusionIDs.length < 2) {
         continue
       }
-      willKilled.push(...fusionIDs)
+      mate.push(...fusionIDs)
       const name = this.lessUsedNames(getLevel(p.name) + 1)[0];
-      this.addPiece(Piece.p(name, p.pos))
+      pro.push(Piece.p(name, p.pos))
     }
-    willKilled.forEach((id) => this.pieces.delete(id))
+    mate.forEach((id) => this.pieces.delete(id))
+    return { mate: mate, pro: pro }
   }
 
 
   touchAt(x: integer, y: integer) {
-    console.log({ m: "touchAt", x: x, y: y });
-    this.gather(x, y);
-    this.fusionTights();
+    this.phase = new GatherPhase(this, x, y)
   }
 }
 

@@ -1,16 +1,7 @@
 import * as Phaser from 'phaser';
 import { BaseScene } from './baseScene';
-import { Board } from './board';
+import { Board, Piece } from './board';
 import * as U from './util'
-
-/*
- マス目がある。6x6 ぐらいか。
- マス目をタップすると、そのマス目の上下左右からそのマス目に向かって移動する。
- 移動の結果、「た」と「つ」の間に「い」があったら、タイツになる。
- タイツの上下左右が同ランクのタイツだったら、1ランク上のタイツになる。
- マス目に「た」「い」「つ」が適宜供給される（時間制）
- 空欄がなくなったらゲームオーバー。
- */
 
 const depth = {
 };
@@ -77,6 +68,17 @@ export class GameMain extends BaseScene {
       rc.top + rc.height / (h + 2) * (pos.y + 1.5)
     ]
   }
+  placePiece(p: Piece) {
+    let o = this.piecies.get(p.id);
+    if (o === null || o === undefined) {
+      o = this.add.sprite(100, 100, p.name);
+      this.piecies.set(p.id, o);
+      console.log({ o: o, p: p });
+    }
+    const [x, y] = this.dispPos(p.pos)
+    o.setPosition(x, y);
+    o.setVisible(true);
+  }
   update() {
     this.board.update();
     const { w, h } = this.board.wh;
@@ -85,16 +87,12 @@ export class GameMain extends BaseScene {
       unchecked.add(k);
     }
     for (const [id, p] of this.board.pieces.entries()) {
-      let o = this.piecies.get(id);
       unchecked.delete(p.id)
-      if (o === null || o === undefined) {
-        o = this.add.sprite(100, 100, p.name);
-        this.piecies.set(p.id, o);
-        console.log({ o: o, p: p });
-      }
-      const [x, y] = this.dispPos(p.pos)
-      o.setPosition(x, y);
-      o.setVisible(true);
+      this.placePiece(p)
+    }
+    for (const p of this.board.movings) {
+      unchecked.delete(p.id)
+      this.placePiece(p)
     }
     for (const k of unchecked.values()) {
       this.piecies.get(k)!.setVisible(false);

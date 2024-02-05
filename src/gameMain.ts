@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { BaseScene } from './baseScene';
-import { Board, Piece } from './board';
+import { Board, Piece, State } from './board';
 import * as U from './util'
 
 const depth = {
@@ -68,7 +68,7 @@ export class GameMain extends BaseScene {
       rc.top + rc.height / (h + 2) * (pos.y + 1.5)
     ]
   }
-  placePiece(p: Piece) {
+  placePiece(p: Piece, sta: { s: State, c: number } | null) {
     let o = this.piecies.get(p.id);
     if (o === null || o === undefined) {
       o = this.add.sprite(100, 100, p.name);
@@ -78,6 +78,13 @@ export class GameMain extends BaseScene {
     const [x, y] = this.dispPos(p.pos)
     o.setPosition(x, y);
     o.setVisible(true);
+    if (sta?.s == "d") {
+      o.setScale(2 ** (1 - sta.c));
+      o.setAlpha(sta.c);
+    } else {
+      o.setScale(1);
+      o.setAlpha(1);
+    }
   }
   update() {
     this.board.update();
@@ -88,11 +95,13 @@ export class GameMain extends BaseScene {
     }
     for (const [id, p] of this.board.pieces.entries()) {
       unchecked.delete(p.id)
-      this.placePiece(p)
+      this.placePiece(p, null)
     }
-    for (const p of this.board.movings) {
-      unchecked.delete(p.id)
-      this.placePiece(p)
+    for (const m of this.board.movings) {
+      for (const p of m.p) {
+        unchecked.delete(p.id)
+        this.placePiece(p, m)
+      }
     }
     for (const k of unchecked.values()) {
       this.piecies.get(k)!.setVisible(false);

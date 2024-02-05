@@ -84,7 +84,7 @@ abstract class Phase {
   constructor(board: Board) {
     this.board = board
   }
-  abstract get movings(): Piece[]
+  abstract get movings(): Movings
 }
 
 type Move = {
@@ -93,14 +93,18 @@ type Move = {
   p: Piece
 }
 
+export type State = "g" | "d"
+export type Movings = { s: State, c: number, p: Piece[] }[]
+
 class GatherPhase extends Phase {
   moves: Move[]
   constructor(board: Board, x: integer, y: integer) {
     super(board)
     this.moves = board.getMoves(x, y)
   }
-  get movings(): Piece[] {
-    return this.moves.map((e) => e.p)
+  get movings(): Movings {
+    const m = this.moves.map((e) => e.p)
+    return [{ s: "g", c: 0, p: m }]
   }
   update(): void {
     ++this.tick
@@ -122,15 +126,43 @@ class GatherPhase extends Phase {
 }
 
 class FusionPhase extends Phase {
+  mate: Piece[] = []
+  pro: Piece[] = []
+  m: Movings = []
   update(): void {
-    const { mate, pro } = this.board.fusionTights();
-    pro.forEach((p) => this.board.addPiece(p));
-    if (pro.length == 0) {
-      this.board.phase = new ProducePhase(this.board);
+    switch (this.tick) {
+      case 0:
+        const { mate, pro } = this.board.fusionTights();
+        this.mate = mate
+        this.pro = pro
+        if (this.pro.length == 0) {
+          this.board.phase = new ProducePhase(this.board);
+        } else {
+          this.m = [
+            { s: "d", c: 0, p: this.mate },
+            { s: "d", c: 0, p: this.pro },
+          ]
+        }
+        this.tick = 1
+        break
+      case 20:
+        this.pro.forEach((p) => this.board.addPiece(p));
+        this.m = []
+        this.tick = 0
+        break
+      default:
+        ++this.tick
     }
   }
-  get movings(): Piece[] {
-    return []
+  get movings(): Movings {
+    const t = Math.min(1, Math.max(0, 1 - this.tick / 22))
+    if (this.m && this.m[0]) {
+      this.m[0].c = t
+    }
+    if (this.m && this.m[1]) {
+      this.m[1].c = 1 - t
+    }
+    return this.m
   }
 }
 
@@ -147,7 +179,7 @@ class ProducePhase extends Phase {
       b.lastTouch = null
     }
   }
-  get movings(): Piece[] {
+  get movings(): Movings {
     return []
   }
 }
@@ -165,7 +197,7 @@ export class Board {
     this.pieces.set(p.id, p)
   }
 
-  get movings(): Piece[] {
+  get movings(): Movings {
     return this.phase.movings
   }
 
@@ -318,8 +350,8 @@ export class Board {
         throw `unexpectd pname:${name}, level:${level}`
     }
   }
-  fusionTights(): { mate: string[], pro: Piece[] } {
-    let mate: string[] = [];
+  fusionTights(): { mate: Piece[], pro: Piece[] } {
+    let mate: Piece[] = [];
     let pro: Piece[] = [];
     for (const [id, p] of this.pieces.entries()) {
       if (p.name[0] != "i") {
@@ -331,11 +363,16 @@ export class Board {
       if (fusionIDs.length < 2) {
         continue
       }
-      mate.push(...fusionIDs)
+      fusionIDs.forEach((id) => {
+        const p = this.pieces.get(id)
+        if (p != null) {
+          mate.push(p)
+        }
+      })
       const name = this.lessUsedNames(getLevel(p.name) + 1)[0];
       pro.push(Piece.p(name, p.pos))
     }
-    mate.forEach((id) => this.pieces.delete(id))
+    mate.forEach((p) => this.pieces.delete(p.id))
     return { mate: mate, pro: pro }
   }
 

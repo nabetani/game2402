@@ -138,8 +138,13 @@ class ProducePhase extends Phase {
   update(): void {
     ++this.tick
     const N = 120
-    if (this.tick % N == 0) {
+    if (this.tick % N == 1) {
       this.board.add()
+    }
+    const b = this.board
+    if (b.lastTouch != null) {
+      b.phase = new GatherPhase(b, b.lastTouch.x, b.lastTouch.y)
+      b.lastTouch = null
     }
   }
   get movings(): Piece[] {
@@ -154,6 +159,7 @@ export class Board {
   rng: U.Rng
   pieces: Map<string, Piece> = new Map<string, Piece>();
   tick: integer = 0
+  lastTouch: { x: integer, y: integer } | null = null;
 
   addPiece(p: Piece) {
     this.pieces.set(p.id, p)
@@ -333,9 +339,8 @@ export class Board {
     return { mate: mate, pro: pro }
   }
 
-
   touchAt(x: integer, y: integer) {
-    this.phase = new GatherPhase(this, x, y)
+    this.lastTouch = { x: x, y: y }
   }
 }
 

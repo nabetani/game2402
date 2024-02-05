@@ -120,7 +120,7 @@ class GatherPhase extends Phase {
         m.p.pos = m.p.dpos()
         this.board.addPiece(m.p)
       }
-      this.board.phase = new FusionPhase(this.board)
+      this.board.phase = new FusionPhase(this.board, 0)
     }
   }
 }
@@ -129,6 +129,11 @@ class FusionPhase extends Phase {
   mate: Piece[] = []
   pro: Piece[] = []
   m: Movings = []
+  nextTick: integer
+  constructor(board: Board, nextTick: integer) {
+    super(board)
+    this.nextTick = nextTick
+  }
   update(): void {
     switch (this.tick) {
       case 0:
@@ -136,7 +141,7 @@ class FusionPhase extends Phase {
         this.mate = mate
         this.pro = pro
         if (this.pro.length == 0) {
-          this.board.phase = new ProducePhase(this.board);
+          this.board.phase = new ProducePhase(this.board, this.nextTick);
         } else {
           this.m = [
             { s: "d", c: 0, p: this.mate },
@@ -167,11 +172,16 @@ class FusionPhase extends Phase {
 }
 
 class ProducePhase extends Phase {
+  constructor(board: Board, t: integer) {
+    super(board)
+    this.tick = t
+  }
   update(): void {
     ++this.tick
-    const N = 120
+    const N = 240
     if (this.tick % N == 1) {
       this.board.add()
+      this.board.phase = new FusionPhase(this.board, 1)
     }
     const b = this.board
     if (b.lastTouch != null) {
@@ -187,7 +197,7 @@ class ProducePhase extends Phase {
 export class Board {
   static get maxLevel(): integer { return 2 }
   get wh() { return { w: 6, h: 6 } };
-  phase: Phase = new ProducePhase(this)
+  phase: Phase = new ProducePhase(this, 1)
   rng: U.Rng
   pieces: Map<string, Piece> = new Map<string, Piece>();
   tick: integer = 0
@@ -201,15 +211,35 @@ export class Board {
     return this.phase.movings
   }
 
-
   initBoard() {
-    const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
-    const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
-    const p = this.rng.shuffle<PNameType>([PName.ta(0), PName.i(0), PName.tu(0)]);
-    const m = Math.min(x.length, y.length);
-    this.pieces.clear();
-    for (const i of U.range(0, m)) {
-      this.addPiece(Piece.d(p[i % p.length], x[i], y[i]));
+    if (true) {
+      const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
+      const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
+      const p = this.rng.shuffle<PNameType>([PName.ta(0), PName.i(0), PName.tu(0)]);
+      const m = Math.min(x.length, y.length);
+      this.pieces.clear();
+      for (const i of U.range(0, m)) {
+        this.addPiece(Piece.d(p[i % p.length], x[i], y[i]));
+      }
+    } else {
+      const s = [PName.ta(0), PName.i(0), PName.tu(0)]
+      for (const y of U.range(0, this.wh.h)) {
+        for (const x of U.range(0, this.wh.w)) {
+          if (x < 5 && y < 3) {
+            const n = parseInt(["12121", "12023", "32323"][y][x])
+            if (0 < n) {
+              this.addPiece(Piece.d(s[n - 1], x, y));
+            }
+          } else if (x < 5 && y < 6) {
+            const n = parseInt(["12121", "12023", "32323"][y - 3][x])
+            if (0 < n) {
+              this.addPiece(Piece.d(s[n - 1], x, y));
+            }
+          } else {
+            this.addPiece(Piece.d(PName.i(0), x, y));
+          }
+        }
+      }
     }
     console.log({ "Board.initBoard": this.pieces });
   }

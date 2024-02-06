@@ -195,7 +195,8 @@ class ProducePhase extends Phase {
 }
 
 export class Board {
-  static get maxLevel(): integer { return 2 }
+  static get maxLevel(): integer { return 6 }
+  // static get maxLevel(): integer { return 2 }
   get wh() { return { w: 6, h: 6 } };
   phase: Phase = new ProducePhase(this, 1)
   rng: U.Rng

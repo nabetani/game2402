@@ -15,7 +15,7 @@ name = { "万"=>"man", "億"=>"oku" }
   gb=" -gaussian-blur #{25}x#{10}"
   `convert -size #{w1/4}x#{h1/4} xc: +noise Random #{gb} -resize 400% -crop #{w0}x#{h0}+#{m}+#{m} -auto-level -auto-level n.png`
   `magick  -background black -fill white -font "ヒラギノ角ゴシック-W#{weight}" \
-            -size #{w0}x#{h0} -gravity center label:#{x} \
+            -size #{w0}x#{h0} -gravity south label:#{x} \
             a.png`
   `convert n.png a.png -compose multiply -composite  #{gb} -spread 25 -gaussian-blur 5x2 -paint 20 -paint 20 -auto-level b.png`
   `convert b.png -colorspace HSL -separate lumi.png`
@@ -27,4 +27,5 @@ name = { "万"=>"man", "億"=>"oku" }
 end
 
 list = [*0..9,"man", "oku"].map{ "#{_1}.png" }.join(" ")
-`convert +append #{list} -resize #{w*12}x#{h} nums.webp`
+`convert +append #{list} -resize #{w*12}x#{h} ../../src/assets/nums.webp`
+`rm *.png`

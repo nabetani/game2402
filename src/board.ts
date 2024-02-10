@@ -67,6 +67,7 @@ export class NoPos {
 export class Piece {
   id: string
   name: PNameType
+  age: integer = 0
   pos: DPos | CPos
   constructor(name: PNameType, pos: DPos | CPos) {
     this.id = U.newID();
@@ -166,7 +167,7 @@ class FusionPhase extends Phase {
         }
         this.tick = 1
         break
-      case 20:
+      case 10:
         this.pro.forEach((p) => this.board.addPiece(p));
         this.m = []
         this.tick = 0
@@ -176,7 +177,7 @@ class FusionPhase extends Phase {
     }
   }
   get movings(): Movings {
-    const t = Math.min(1, Math.max(0, 1 - this.tick / 22))
+    const t = Math.min(1, Math.max(0, 1 - this.tick / 10))
     if (this.m && this.m[0]) {
       this.m[0].c = t
     }
@@ -195,6 +196,9 @@ class ProducePhase extends Phase {
   update(): void {
     ++this.tick
     const N = 240
+    for (const p of this.board.pieces.values()) {
+      ++p.age
+    }
     if (this.tick % N == 1) {
       this.board.add()
       this.board.phase = new FusionPhase(this.board, 1)
@@ -432,7 +436,9 @@ export class Board {
       fusionIDs.forEach((id) => set.add(id));
       scoreBase.set(lev, set);
       const name = this.lessUsedNames(getLevel(p.name) + 1)[0];
-      pro.push(Piece.p(name, p.pos))
+      const newPiece = Piece.p(name, p.pos)
+      newPiece.age = 100
+      pro.push(newPiece)
     }
     if (0 < scoreBase.size) {
       console.log(scoreBase);

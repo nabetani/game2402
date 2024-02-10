@@ -100,7 +100,8 @@ export class GameMain extends BaseScene {
       o.setScale(2 ** (1 - sta.c));
       o.setAlpha(sta.c);
     } else {
-      o.setScale(1);
+      const scale = Math.min(p.age / 4, 1)
+      o.setScale(scale);
       o.setAlpha(1);
     }
   }
@@ -121,6 +122,7 @@ export class GameMain extends BaseScene {
     }
   }
   updateBoard() {
+    const preGO = this.board.gameIsOver
     this.board.update();
     this.showScore()
     const unchecked = new Set<string>();
@@ -140,12 +142,14 @@ export class GameMain extends BaseScene {
     for (const k of unchecked.values()) {
       this.piecies.get(k)!.setVisible(false);
     }
-    if (this.board.gameIsOver) {
+    if (!preGO && this.board.gameIsOver) {
       this.gameOver()
     }
   }
   updateProc = () => { this.updateBoard() }
-  updateGameover() { }
+  updateGameover() {
+    this.updateBoard()
+  }
   gameOver() {
     const { width, height } = this.canvas();
     this.add.image(width / 2, 200, "gameover");

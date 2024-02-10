@@ -6,7 +6,17 @@ import * as U from './util'
 const depth = {
 };
 
+const stringize = (n: integer): string => {
+  n *= 100
+  if (n < 10000) { return `${n}` }
+  const m = Math.floor(n / 10000)
+  const f = `${n}`.substr(-4)
+  return `${m}万${f}`
+}
+
 export class GameMain extends BaseScene {
+  board = new Board((Math.random() * (1 << 31)) | 0);
+
   constructor() {
     console.log("GameMain.ctor");
     super("GameMain")
@@ -21,8 +31,6 @@ export class GameMain extends BaseScene {
       }
     }
   }
-  t0 = 0
-  board = new Board((Math.random() * (1 << 31)) | 0);
 
   get boardBBox(): Phaser.Geom.Rectangle {
     const { width, height } = this.canvas();
@@ -32,10 +40,9 @@ export class GameMain extends BaseScene {
   }
 
   create(data: { soundOn: boolean | undefined }) {
-    this.t0 = (new Date()).getTime();
     const { width, height } = this.canvas();
     // this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
-    this.board = new Board(0);
+    this.board = new Board((Math.random() * (1 << 31)) | 0);
     const rc = this.boardBBox
     const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 0.1)
     ui.setInteractive().on("pointerdown", (_: any, x: number, y: number) => {
@@ -88,7 +95,7 @@ export class GameMain extends BaseScene {
   }
   update() {
     this.board.update();
-    const { w, h } = this.board.wh;
+    const score = stringize(this.board.score + 123456)
     const unchecked = new Set<string>();
     for (const k of this.piecies.keys()) {
       unchecked.add(k);

@@ -6,17 +6,20 @@ import * as U from './util'
 const depth = {
 };
 
-const stringize = (n: integer): string => {
-  n *= 100
-  if (n < 10000) { return `${n}` }
-  const m = Math.floor(n / 10000)
-  const f = `${n}`.substr(-4)
-  return `${m}万${f}`
+const stringize = (n: integer, r: integer = 0): integer[] => {
+  if (n <= 0) { return [0] }
+  const f = n % 10
+  const h = (n - f) / 10
+  if (h == 0) { return [f] }
+  const t = (r == 3) ? [10]
+    : (r == 7) ? [11]
+      : []
+  return [...stringize(h, r + 1), ...t, f]
 }
 
 export class GameMain extends BaseScene {
   board = new Board((Math.random() * (1 << 31)) | 0);
-
+  nums: Phaser.GameObjects.Sprite[] = []
   constructor() {
     console.log("GameMain.ctor");
     super("GameMain")
@@ -30,6 +33,10 @@ export class GameMain extends BaseScene {
         this.load.image(name, `assets/${name}.webp`);
       }
     }
+    this.load.spritesheet('nums', 'assets/nums.webp', {
+      frameWidth: 42,
+      frameHeight: 70,
+    });
   }
 
   get boardBBox(): Phaser.Geom.Rectangle {
@@ -93,9 +100,26 @@ export class GameMain extends BaseScene {
       o.setAlpha(1);
     }
   }
+  showScore() {
+    const { width, height } = this.canvas();
+    const text = stringize(this.board.score + 9876e5)
+    for (const s of this.nums) {
+      s.setVisible(false);
+      s.destroy()
+    }
+    this.nums = []
+    const w = 42
+    const h = 70
+    for (const ix of U.range(0, text.length)) {
+      const x = (ix - text.length / 2) * w + width / 2
+      const y = h
+      const n = text[ix]
+      this.nums.push(this.add.sprite(x, y, "nums", n))
+    }
+  }
   update() {
     this.board.update();
-    const score = stringize(this.board.score + 123456)
+    this.showScore()
     const unchecked = new Set<string>();
     for (const k of this.piecies.keys()) {
       unchecked.add(k);

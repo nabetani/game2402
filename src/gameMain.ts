@@ -4,6 +4,7 @@ import { Board, Piece, State } from './board';
 import * as U from './util'
 
 const depth = {
+  bg: 0,
 };
 
 const stringize = (n: integer, r: integer = 0): integer[] => {
@@ -37,6 +38,7 @@ export class GameMain extends BaseScene {
       frameWidth: 42,
       frameHeight: 70,
     });
+    this.load.image("bg", "assets/bg.webp");
   }
 
   get boardBBox(): Phaser.Geom.Rectangle {
@@ -48,6 +50,7 @@ export class GameMain extends BaseScene {
 
   create(data: { soundOn: boolean | undefined }) {
     const { width, height } = this.canvas();
+    this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(depth.bg);
     // this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
     this.board = new Board((Math.random() * (1 << 31)) | 0);
     const rc = this.boardBBox
@@ -102,19 +105,18 @@ export class GameMain extends BaseScene {
   }
   showScore() {
     const { width, height } = this.canvas();
-    const text = stringize(this.board.score + 9876e5)
+    const text = stringize(this.board.score * 10)
     for (const s of this.nums) {
-      s.setVisible(false);
       s.destroy()
     }
     this.nums = []
     const w = 42
     const h = 70
     for (const ix of U.range(0, text.length)) {
-      const x = (ix - text.length / 2) * w + width / 2
+      const x = (ix - (text.length - 1) / 2) * w + width / 2
       const y = h
       const n = text[ix]
-      this.nums.push(this.add.sprite(x, y, "nums", n))
+      this.nums.push(this.add.sprite(x, y, "nums", n).setOrigin(0.5, 0.5))
     }
   }
   update() {

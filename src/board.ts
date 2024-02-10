@@ -9,7 +9,11 @@ type PNameType = "ta_1" | "i_1" | "tu_1" |
   "tmax"
 
 const getLevel = (n: PNameType): integer => {
-  return parseInt(n.split("_")[1], 10) - 1;
+  const [_, level] = n.split("_")
+  if (level === undefined) {
+    return 7
+  }
+  return parseInt(level, 10) - 1;
 }
 export class PName {
   static ta_: PNameType[] = ["ta_1", "ta_2", "ta_3", "ta_4", "ta_5", "ta_6"]
@@ -68,6 +72,9 @@ export class Piece {
     this.id = U.newID();
     this.pos = pos;
     this.name = name;
+  }
+  get level(): integer {
+    return getLevel(this.name);
   }
   dpos(): DPos {
     return new DPos(this.pos.x, this.pos.y)
@@ -187,7 +194,7 @@ class ProducePhase extends Phase {
   }
   update(): void {
     ++this.tick
-    const N = 240e5
+    const N = 240
     if (this.tick % N == 1) {
       this.board.add()
       this.board.phase = new FusionPhase(this.board, 1)
@@ -231,6 +238,14 @@ export class Board {
       this.pieces.clear();
       for (const i of U.range(0, m)) {
         this.addPiece(Piece.d(p[i % p.length], x[i], y[i]));
+      }
+    } else if (true) {
+      for (const y of U.range(1, this.wh.h)) {
+        for (const x of U.range(0, this.wh.w)) {
+          const a = [(x: number) => PName.ta(x), (x: number) => PName.i(x), (x: number) => PName.tu(x)][this.rng.n(3)]
+          const p = a(this.rng.n(5) + 1)
+          this.addPiece(Piece.d(p, x, y));
+        }
       }
     } else {
       const s = [PName.ta(0), PName.i(0), PName.tu(0)]
@@ -298,7 +313,9 @@ export class Board {
     this.addPiece(Piece.d(names[0], x, y))
     // this.phase = new FusionPhase(this);
   }
-
+  get gameIsOver(): boolean {
+    return this.pieces.size == this.wh.h * this.wh.w
+  }
   update() {
     this.phase.update()
   }

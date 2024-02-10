@@ -27,6 +27,7 @@ export class GameMain extends BaseScene {
   }
   preload() {
     console.log("GameMain.preload");
+    this.load.image("gameover", `assets/gameover.webp`);
     this.load.image("tmax", `assets/tmax.webp`);
     for (const k of ["ta", "i", "tu"]) {
       for (const i of U.range(1, Board.maxLevel + 1)) {
@@ -43,7 +44,7 @@ export class GameMain extends BaseScene {
 
   get boardBBox(): Phaser.Geom.Rectangle {
     const { width, height } = this.canvas();
-    const g = width * 0.1
+    const g = -width / 20
     const w = width - g * 2
     return new Phaser.Geom.Rectangle(g, height - w - g, w, w);
   }
@@ -119,7 +120,7 @@ export class GameMain extends BaseScene {
       this.nums.push(this.add.sprite(x, y, "nums", n).setOrigin(0.5, 0.5))
     }
   }
-  update() {
+  updateBoard() {
     this.board.update();
     this.showScore()
     const unchecked = new Set<string>();
@@ -139,5 +140,18 @@ export class GameMain extends BaseScene {
     for (const k of unchecked.values()) {
       this.piecies.get(k)!.setVisible(false);
     }
+    if (this.board.gameIsOver) {
+      this.gameOver()
+    }
+  }
+  updateProc = () => { this.updateBoard() }
+  updateGameover() { }
+  gameOver() {
+    const { width, height } = this.canvas();
+    this.add.image(width / 2, 200, "gameover");
+    this.updateProc = () => { this.updateGameover() }
+  }
+  update() {
+    this.updateProc()
   }
 }

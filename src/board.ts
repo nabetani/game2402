@@ -255,11 +255,14 @@ export class Board {
         this.addPiece(Piece.d(p[i % p.length], x[i], y[i]));
       }
     } else if (true) {
+      const names: PNameType[] = ["tmax"]
+      for (const l of U.range(0, Board.maxLevel)) {
+        names.push(PName.ta(l), PName.i(l), PName.tu(l))
+      }
       for (const y of U.range(1, this.wh.h)) {
         for (const x of U.range(0, this.wh.w)) {
-          const a = [(x: number) => PName.ta(x), (x: number) => PName.i(x), (x: number) => PName.tu(x)][this.rng.n(3)]
-          const p = a(this.rng.n(5) + 1)
-          this.addPiece(Piece.d(p, x, y));
+          const n = names[((x + y * this.wh.h) * 17) % names.length]
+          this.addPiece(Piece.d(n, x, y));
         }
       }
     } else {

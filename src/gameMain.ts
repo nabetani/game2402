@@ -5,6 +5,7 @@ import * as U from './util'
 
 const depth = {
   bg: 0,
+  tights: 20
 };
 
 const stringize = (n: integer, r: integer = 0): integer[] => {
@@ -18,13 +19,8 @@ const stringize = (n: integer, r: integer = 0): integer[] => {
   return [...stringize(h, r + 1), ...t, f]
 }
 
-const TSizeMap = new Map<integer, integer>([
-  [1, 39],
-  [2, 42],
-  [3, 45],
-  [4, 47],
-  [5, 50],
-  [6, 53]])
+const TSizeMap = new Map<integer, integer>(
+  [[1, 59], [2, 64], [3, 69], [4, 74], [5, 79], [6, 85]])
 
 export class GameMain extends BaseScene {
   board = new Board((Math.random() * (1 << 31)) | 0);
@@ -115,6 +111,7 @@ export class GameMain extends BaseScene {
     let o = this.piecies.get(p.id);
     if (o === null || o === undefined) {
       o = this.add.sprite(0, 0, ...this.tshape(p));
+      o.setDepth(depth.tights + p.level)
       this.piecies.set(p.id, o);
       console.log({ o: o, p: p });
     }

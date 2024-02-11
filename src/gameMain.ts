@@ -88,7 +88,7 @@ export class GameMain extends BaseScene {
     const cw = rc.width / (w + 2) * cr
     const ch = rc.height / (h + 2) * cr
     const g = this.add.graphics().setDepth(200)
-    g.fillStyle(0, 0.2)
+    g.fillStyle(0xffffff, 0.1)
     const sideT = (x: number, dirx: number, y: number) => {
       const dx = dirx * cw * 0.4
       const dy = ch / 2

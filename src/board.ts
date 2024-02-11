@@ -228,7 +228,7 @@ class ProducePhase extends Phase {
 export class Board {
   static get maxLevel(): integer { return 6 }
   // static get maxLevel(): integer { return 2 }
-  get wh() { return { w: 6, h: 6 } };
+  get wh() { return { w: 6, h: 8 } };
   phase: Phase = new ProducePhase(this, 1)
   rng: U.Rng
   pieces: Map<string, Piece> = new Map<string, Piece>();
@@ -245,7 +245,7 @@ export class Board {
   }
 
   initBoard() {
-    if (false) {
+    if (true) {
       const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
       const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
       const p = this.rng.shuffle<PNameType>([PName.ta(0), PName.i(0), PName.tu(0)]);

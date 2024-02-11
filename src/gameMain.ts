@@ -53,10 +53,12 @@ export class GameMain extends BaseScene {
   }
 
   get boardBBox(): Phaser.Geom.Rectangle {
-    const { width, height } = this.canvas();
+    const { width, height } = this.canvas()
+    const { w, h } = this.board.wh
     const g = -width / 20
-    const w = width - g * 2
-    return new Phaser.Geom.Rectangle(g, height - w - g, w, w);
+    const wpix = width - g * 2
+    const hpix = wpix / w * h
+    return new Phaser.Geom.Rectangle(g, height - hpix - g, wpix, hpix);
   }
 
   create(data: { soundOn: boolean | undefined }) {
@@ -69,7 +71,7 @@ export class GameMain extends BaseScene {
     // this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
     this.board = new Board((Math.random() * (1 << 31)) | 0);
     const rc = this.boardBBox
-    const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 0.1)
+    const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 0)
     ui.setInteractive().on("pointerdown", (_: any, x: number, y: number) => {
       const { w, h } = this.board.wh;
       const ix = Math.floor(x * (w + 2) / rc.width) - 1;
@@ -82,13 +84,34 @@ export class GameMain extends BaseScene {
   drawBoard() {
     const { w, h } = this.board.wh;
     const rc = this.boardBBox
-    for (const ix of U.range(0, w + 3)) {
-      const x = ix / (w + 2) * rc.width + rc.left
-      this.add.line(x, rc.centerY, 0, 0, 0, rc.height, 0xffffff, 1);
+    const cr = 0.85
+    const cw = rc.width / (w + 2) * cr
+    const ch = rc.height / (h + 2) * cr
+    const g = this.add.graphics().setDepth(200)
+    g.fillStyle(0, 0.2)
+    const sideT = (x: number, dirx: number, y: number) => {
+      const dx = dirx * cw * 0.4
+      const dy = ch / 2
+      g.fillTriangle(x, y, x + dx, y + dy, x + dx, y - dy)
     }
-    for (const iy of U.range(0, h + 3)) {
-      const y = iy / (h + 2) * rc.height + rc.top;
-      this.add.line(rc.centerX, y, 0, 0, rc.width, 0, 0xffffff, 1);
+    const topBotomT = (y: number, diry: number, x: number) => {
+      const dy = diry * ch * 0.4
+      const dx = cw / 2
+      g.fillTriangle(x, y, x + dx, y + dy, x - dx, y + dy)
+    }
+    for (const iy of U.range(0, h)) {
+      const y = (iy + 1.5) / (h + 2) * rc.height + rc.top;
+      for (const ix of U.range(0, w)) {
+        const x = (ix + 1.5) / (w + 2) * rc.width + rc.left
+        g.fillRoundedRect(x - cw / 2, y - ch / 2, cw, ch, cw / 8);
+      }
+      sideT(rc.left + cw * 0.7, 1, y)
+      sideT(rc.right - cw * 0.7, -1, y)
+    }
+    for (const ix of U.range(0, w)) {
+      const x = (ix + 1.5) / (w + 2) * rc.width + rc.left
+      topBotomT(rc.top + ch * 0.7, 1, x)
+      topBotomT(rc.bottom - ch * 0.7, -1, x)
     }
   }
   piecies = new Map<string, Phaser.GameObjects.Sprite>();
@@ -138,7 +161,7 @@ export class GameMain extends BaseScene {
     const h = 70
     for (const ix of U.range(0, text.length)) {
       const x = (ix - (text.length - 1) / 2) * w + width / 2
-      const y = h
+      const y = h * 0.7
       const n = text[ix]
       this.nums.push(this.add.sprite(x, y, "nums", n).setOrigin(0.5, 0.5))
     }
@@ -174,7 +197,7 @@ export class GameMain extends BaseScene {
   }
   gameOver() {
     const { width, height } = this.canvas();
-    this.add.image(width / 2, 200, "gameover");
+    this.add.image(width / 2, 150, "gameover");
     this.updateProc = () => { this.updateGameover() }
   }
   update() {

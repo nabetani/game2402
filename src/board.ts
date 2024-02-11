@@ -77,6 +77,17 @@ export class Piece {
   get level(): integer {
     return getLevel(this.name);
   }
+  get typeIx(): integer {
+    const [t] = this.name.split("_")
+    switch (t) {
+      case "ta": return 0
+      case "i": return 1
+      case "tu": return 2
+      case "tmax": return 3
+      default:
+        throw "unexpected name" + this.name
+    }
+  }
   dpos(): DPos {
     return new DPos(this.pos.x, this.pos.y)
   }
@@ -234,7 +245,7 @@ export class Board {
   }
 
   initBoard() {
-    if (true) {
+    if (false) {
       const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
       const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
       const p = this.rng.shuffle<PNameType>([PName.ta(0), PName.i(0), PName.tu(0)]);

@@ -18,6 +18,14 @@ const stringize = (n: integer, r: integer = 0): integer[] => {
   return [...stringize(h, r + 1), ...t, f]
 }
 
+const TSizeMap = new Map<integer, integer>([
+  [1, 39],
+  [2, 42],
+  [3, 45],
+  [4, 47],
+  [5, 50],
+  [6, 53]])
+
 export class GameMain extends BaseScene {
   board = new Board((Math.random() * (1 << 31)) | 0);
   nums: Phaser.GameObjects.Sprite[] = []
@@ -29,11 +37,17 @@ export class GameMain extends BaseScene {
     console.log("GameMain.preload");
     this.load.image("gameover", `assets/gameover.webp`);
     this.load.image("tmax", `assets/tmax.webp`);
-    for (const k of ["ta", "i", "tu"]) {
-      for (const i of U.range(1, Board.maxLevel + 1)) {
-        const name = `${k}_${i}`
-        this.load.image(name, `assets/${name}.webp`);
-      }
+    for (const i of U.range(1, Board.maxLevel + 1)) {
+      const name = `t${i}`
+      const wh = TSizeMap.get(i)!
+      this.load.image(name,).on("load", (e: any) => {
+        const o = this.game.textures.get(name)
+        console.log({ "e": e, "texture": o })
+      });
+      this.load.spritesheet(name, `assets/${name}.webp`, {
+        frameWidth: wh,
+        frameHeight: wh,
+      });
     }
     this.load.spritesheet('nums', 'assets/nums.webp', {
       frameWidth: 42,
@@ -50,7 +64,11 @@ export class GameMain extends BaseScene {
   }
 
   create(data: { soundOn: boolean | undefined }) {
-    const { width, height } = this.canvas();
+    const o = this.game.textures.get("t1")
+    console.log({ cache: o })
+    for (const i of U.range(1, Board.maxLevel + 1)) {
+      const name = `t${i}`
+    }
     this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(depth.bg);
     // this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
     this.board = new Board((Math.random() * (1 << 31)) | 0);
@@ -86,10 +104,17 @@ export class GameMain extends BaseScene {
       rc.top + rc.height / (h + 2) * (pos.y + 1.5)
     ]
   }
+  tshape(p: Piece): [string, integer | undefined] {
+    const ix = p.typeIx
+    if (ix < 3) {
+      return [`t${p.level + 1}`, ix]
+    }
+    return ["tmax", undefined]
+  }
   placePiece(p: Piece, sta: { s: State, c: number } | null) {
     let o = this.piecies.get(p.id);
     if (o === null || o === undefined) {
-      o = this.add.sprite(100, 100, p.name);
+      o = this.add.sprite(0, 0, ...this.tshape(p));
       this.piecies.set(p.id, o);
       console.log({ o: o, p: p });
     }

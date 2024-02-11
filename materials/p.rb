@@ -6,7 +6,8 @@ sizes=[]
   d = (85 * 0.65**((L-level)/L.to_f)).round
   sizes<<[level,d]
   puts "d=#{d}"
-  sat = (level*100.0/L).round
+  satLBase = 2
+  sat = ((level+satLBase)*150.0/(L+satLBase)).round
   %w( ta i tu ).each do |x|
     dest = "tmp/#{x}.png"
     %x(convert t#{level}.png -trim -resize 200x200 -background transparent -gravity center -extent 200x200 tmp/tmp.png)

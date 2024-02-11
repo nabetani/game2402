@@ -207,9 +207,6 @@ class ProducePhase extends Phase {
   update(): void {
     ++this.tick
     const N = 240
-    for (const p of this.board.pieces.values()) {
-      ++p.age
-    }
     if (this.tick % N == 1) {
       this.board.add()
       this.board.phase = new FusionPhase(this.board, 1)
@@ -242,6 +239,12 @@ export class Board {
 
   get movings(): Movings {
     return this.phase.movings
+  }
+
+  incAge() {
+    for (const p of this.pieces.values()) {
+      ++p.age
+    }
   }
 
   initBoard() {
@@ -335,6 +338,7 @@ export class Board {
     return this.pieces.size == this.wh.h * this.wh.w
   }
   update() {
+    this.incAge()
     this.phase.update()
   }
 
@@ -350,23 +354,27 @@ export class Board {
 
   getMoves(x0: integer, y0: integer): Move[] {
     let r: Move[] = []
-    for (const i of U.range(0, 4)) {
-      const dx = [1, -1, 0, 0][i];
-      const dy = [0, 0, 1, -1][i];
+    for (const dir of U.range(0, 4)) {
+      const dx = [1, -1, 0, 0][dir];
+      const dy = [0, 0, 1, -1][dir];
       const d = (dx == 0 ? this.wh.h : this.wh.w) + 1
-      let plist: Piece[] = [];
-      for (const i of U.range(1, d)) {
-        const x = x0 + dx * i;
-        const y = y0 + dy * i;
-        const p = this.removeP(x, y);
-        if (p != null) {
-          p.pos = p.cpos()
-          plist.push(p);
+      let goal: [number, number] | null = null
+      for (const dist of U.range(1, d)) {
+        const x = x0 + dx * dist;
+        const y = y0 + dy * dist;
+        if (goal === null) {
+          if (null === this.pieceAt(x, y)) {
+            goal = [x, y];
+          }
+          continue
         }
-      }
-      for (const i of plist.keys()) {
-        const m = { x: x0 + (i + 1) * dx, y: y0 + (i + 1) * dy, p: plist[i] }
-        r.push(m)
+        const p = this.removeP(x, y);
+        if (p !== null) {
+          p.pos = p.cpos()
+          r.push({ x: goal[0], y: goal[1], p: p })
+          goal[0] += dx
+          goal[1] += dy
+        }
       }
     }
     console.log(r)

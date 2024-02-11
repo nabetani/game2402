@@ -46,7 +46,7 @@ export class GameMain extends BaseScene {
       });
     }
     this.load.spritesheet('nums', 'assets/nums.webp', {
-      frameWidth: 42,
+      frameWidth: 39,
       frameHeight: 70,
     });
     this.load.image("bg", "assets/bg.webp");
@@ -152,7 +152,7 @@ export class GameMain extends BaseScene {
   }
   showScore() {
     const { width, height } = this.canvas();
-    const text = stringize(this.board.score * 10)
+    const text = [...stringize(this.board.score * 10), 12]
     for (const s of this.nums) {
       s.destroy()
     }

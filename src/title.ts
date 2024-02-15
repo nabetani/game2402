@@ -5,6 +5,7 @@ import { WStorage } from './wstorage';
 const depth = {
   scoreBase: 10,
   scores: 20,
+  rule: 30,
 };
 
 const stringizeScore = (i: integer): string => {
@@ -27,11 +28,11 @@ export class Title extends BaseScene {
     const { width, height } = this.canvas();
     // const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x727171, 1);
     this.add.image(width / 2, height / 2, "title");
-    const start = this.add.text(width / 2, height / 2, "Start", {
+    const start = this.add.text(width / 2, height / 2 + 50, "Start", {
       fontFamily: 'sans-serif',
       color: "black",
-      backgroundColor: "white",
-      padding: { x: 3, y: 3 },
+      backgroundColor: "#fff6",
+      padding: { x: 50, y: 20 },
       fontSize: "40px",
     });
     start.setOrigin(0.5, 0.5);
@@ -39,8 +40,71 @@ export class Title extends BaseScene {
     start.on("pointerdown", () => {
       this.scene.start('GameMain', { soundOn: true });
     });
+    const ruleBtn = this.add.text(width / 2, start.getBounds().top - 30, "ルール説明", {
+      fontFamily: 'sans-serif',
+      color: "black",
+      backgroundColor: "#fff6",
+      padding: { x: 3, y: 3 },
+      fontSize: "20px",
+    });
+    ruleBtn.setOrigin(0.5, 0.5);
+    ruleBtn.setInteractive();
+    ruleBtn.on("pointerdown", () => { this.showRule() });
     this.addLinks()
     this.showScores()
+  }
+  showRule() {
+    const { width, height } = this.sys.game.canvas;
+    const msg = [
+      "タイツを合成して高レベルタイツを作ります。",
+      "同一レベルの タ・イ・ツ を並べると合成できます。",
+      "上→下、下→上、右→左、左→右のいずれでも OK。",
+      "盤面または、番外の三角をクリックすると",
+      "上下左右のタイツが集まってきます。",
+      "",
+      "タイツを合成すると、以下の計算でスコアが増えます。",
+      "　N=(合成のために失われるタイツの数-2)",
+      "　L=(合成のために失われるタイツの最高レベル)",
+      "　増えるスコア = (10のL乗)×N"
+    ].join("\n");
+    const style = {
+      wordWrap: { width: width * 0.9, useAdvancedWrap: true },
+      fontSize: "18px",
+      color: "black",
+      padding: { x: 10, y: 10 },
+      fixedWidth: width * 0.95,
+      backgroundColor: "white",
+      lineSpacing: 10,
+    };
+    let ruleObjs: Phaser.GameObjects.GameObject[] = [];
+    const rule = this.add.text(width / 2, height / 2, msg, style)
+    rule.setOrigin(0.5, 0.5)
+    rule.setInteractive()
+    rule.setDepth(depth.rule)
+    rule.on("pointerdown", () => {
+      for (const r of ruleObjs) {
+        r.destroy();
+      }
+    }
+    );
+    ruleObjs.push(rule);
+    ruleObjs.push(...this.addCloseBox(rule.getBounds(), rule.depth));
+  }
+  addCloseBox(rc: Phaser.Geom.Rectangle, d: number): Phaser.GameObjects.GameObject[] {
+    let objs = [];
+    const { width, height } = this.sys.game.canvas
+    const w = width / 15;
+    const h = w;
+    const x = rc.right - w / 2;
+    const y = rc.top + h / 2;
+    objs.push(this.add.rectangle(x, y, w, h, 0x727171, 1).setDepth(depth.rule + 1));
+    for (const i of [45, -45]) {
+      const r = this.add.rectangle(x, y, w / 7, h * 0.9, 0xff8888, 1);
+      r.setDepth(depth.rule + 1)
+      r.setAngle(i);
+      objs.push(r);
+    }
+    return objs;
   }
   showScores() {
     let y = 200

@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { BaseScene } from './baseScene';
 import { Board, Piece, State } from './board';
 import * as U from './util'
+import { WStorage } from './wstorage';
 
 const depth = {
   bg: 0,
@@ -152,7 +153,7 @@ export class GameMain extends BaseScene {
   }
   showScore() {
     const { width, height } = this.canvas();
-    const text = [...stringize(this.board.score * 10), 12]
+    const text = [...stringize(this.board.score), 12]
     for (const s of this.nums) {
       s.destroy()
     }
@@ -198,6 +199,8 @@ export class GameMain extends BaseScene {
   gameOver() {
     const { width, height } = this.canvas();
     this.add.image(width / 2, 150, "gameover");
+    WStorage.addScore(this.board.score)
+    console.log({ scores: WStorage.bestScores, cur: this.board.score })
     this.updateProc = () => { this.updateGameover() }
   }
   update() {

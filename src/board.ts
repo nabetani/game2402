@@ -466,7 +466,7 @@ export class Board {
       console.log(scoreBase);
     }
     for (const [k, v] of scoreBase) {
-      this.score += (10 ** k) * fibox(v.size - 2) * scoreBase.size;
+      this.score += 10 * ((10 ** k) * fibox(v.size - 2) * scoreBase.size);
       console.log(this.score);
     }
     mate.forEach((p) => this.pieces.delete(p.id))

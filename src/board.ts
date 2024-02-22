@@ -29,15 +29,6 @@ export class PName {
   static tu(n: integer): PNameType { return this.pname(this.tu_, n) }
 };
 
-const fibox = (x: integer): integer => {
-  const f = (i: integer): [integer, integer] => {
-    if (i < 2) { return [1, 1] }
-    const [a, b] = f(i - 1);
-    return [a + ((b + 1) / 2) >>> 0, a];
-  }
-  return f(x)[0];
-}
-
 export class DPos {
   x: integer
   y: integer
@@ -437,7 +428,6 @@ export class Board {
   fusionTights(): { mate: Piece[], pro: Piece[] } {
     let mate: Piece[] = [];
     let pro: Piece[] = [];
-    let scoreBase = new Map<integer, Set<string>>();
     for (const [id, p] of this.pieces.entries()) {
       if (p.name[0] != "i") {
         continue
@@ -454,22 +444,18 @@ export class Board {
           mate.push(p)
         }
       })
-      const set = scoreBase.get(lev) ?? new Set<string>();
-      fusionIDs.forEach((id) => set.add(id));
-      scoreBase.set(lev, set);
       const name = this.lessUsedNames(getLevel(p.name) + 1)[0];
       const newPiece = Piece.p(name, p.pos)
       newPiece.age = 100
       pro.push(newPiece)
     }
-    if (0 < scoreBase.size) {
-      console.log(scoreBase);
+    if (0 < mate.length) {
+      const maxLevel = Math.max(...mate.map((p) => p.level))
+      const dscore = 10 * (10 ** maxLevel) * (mate.length - 2);
+      console.log({ dscore: dscore, maxLevel: maxLevel, tcount: mate.length })
+      this.score += dscore
+      mate.forEach((p) => this.pieces.delete(p.id))
     }
-    for (const [k, v] of scoreBase) {
-      this.score += 10 * ((10 ** k) * fibox(v.size - 2) * scoreBase.size);
-      console.log(this.score);
-    }
-    mate.forEach((p) => this.pieces.delete(p.id))
     return { mate: mate, pro: pro }
   }
   touchAt(x: integer, y: integer) {

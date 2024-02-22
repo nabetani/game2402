@@ -286,14 +286,18 @@ export class Board {
     this.rng = new U.Rng([seed]);
     this.initBoard()
   }
-  lessUsedNames(level: integer): PNameType[] {
+  lessUsedNames(level: integer, x: integer, y: integer): PNameType[] {
     let u = new Map<string, [PNameType, number]>();
     for (const t of [PName.ta(level), PName.i(level), PName.tu(level)]) {
       u.set(t, [t, this.rng.f01]);
     }
     for (const p of this.pieces.values()) {
       const o = u.get(p.name);
-      if (o) { o[1] += 1 }
+      if (o) {
+        const dx2 = (p.pos.x - x) ** 2
+        const dy2 = (p.pos.y - y) ** 2
+        o[1] += 1000 / (dx2 + dy2)
+      }
     }
     const r = [...u.values()]
     r.sort((a, b): number => a[1] - b[1])
@@ -315,7 +319,7 @@ export class Board {
     const posAdd = this.rng.sel([...pos.values()]);
     const x = posAdd % w
     const y = (posAdd - x) / w
-    const names = this.lessUsedNames(0)
+    const names = this.lessUsedNames(0, x, y)
     for (const name of names) {
       if (!this.canFusionTights(name, x, y)) {
         this.addPiece(Piece.d(name, x, y))
@@ -444,7 +448,7 @@ export class Board {
           mate.push(p)
         }
       })
-      const name = this.lessUsedNames(getLevel(p.name) + 1)[0];
+      const name = this.lessUsedNames(getLevel(p.name) + 1, p.pos.x, p.pos.y)[0];
       const newPiece = Piece.p(name, p.pos)
       newPiece.age = 100
       pro.push(newPiece)

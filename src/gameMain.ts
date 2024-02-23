@@ -168,7 +168,7 @@ export class GameMain extends BaseScene {
     }
   }
   updateBoard() {
-    const preGO = this.board.gameIsOver
+    const preGO = this.board.isGameOver
     this.board.update();
     this.showScore()
     const unchecked = new Set<string>();
@@ -188,7 +188,7 @@ export class GameMain extends BaseScene {
     for (const k of unchecked.values()) {
       this.piecies.get(k)!.setVisible(false);
     }
-    if (!preGO && this.board.gameIsOver) {
+    if (!preGO && this.board.isGameOver) {
       this.gameOver()
     }
   }

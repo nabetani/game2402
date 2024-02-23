@@ -105,6 +105,7 @@ abstract class Phase {
     this.board = board
   }
   abstract get movings(): Movings
+  abstract get isGameOver(): boolean
 }
 
 type Move = {
@@ -122,6 +123,8 @@ class GatherPhase extends Phase {
     super(board)
     this.moves = board.getMoves(x, y)
   }
+  get isGameOver(): boolean { return false }
+
   get movings(): Movings {
     const m = this.moves.map((e) => e.p)
     return [{ s: "g", c: 0, p: m }]
@@ -179,6 +182,7 @@ class FusionPhase extends Phase {
         ++this.tick
     }
   }
+  get isGameOver(): boolean { return false }
   get movings(): Movings {
     const t = Math.min(1, Math.max(0, 1 - this.tick / 10))
     if (this.m && this.m[0]) {
@@ -208,6 +212,10 @@ class ProducePhase extends Phase {
       b.phase = new GatherPhase(b, b.lastTouch.x, b.lastTouch.y)
       b.lastTouch = null
     }
+  }
+  get isGameOver(): boolean {
+    return this.board.pieces.size == this.board.wh.h * this.board.wh.w
+
   }
   get movings(): Movings {
     return []
@@ -249,7 +257,7 @@ export class Board {
       for (const i of U.range(0, m)) {
         this.addPiece(Piece.d(p[i % p.length], x[i], y[i]));
       }
-    } else if (true) {
+    } else if (false) {
       const names: PNameType[] = ["tmax"]
       for (const l of U.range(0, Board.maxLevel)) {
         names.push(PName.ta(l), PName.i(l), PName.tu(l))
@@ -330,8 +338,8 @@ export class Board {
     this.addPiece(Piece.d(names[0], x, y))
     // this.phase = new FusionPhase(this);
   }
-  get gameIsOver(): boolean {
-    return this.pieces.size == this.wh.h * this.wh.w
+  get isGameOver(): boolean {
+    return this.phase.isGameOver
   }
   update() {
     this.incAge()

@@ -6,19 +6,20 @@ type PNameType = "ta_1" | "i_1" | "tu_1" |
   "ta_4" | "i_4" | "tu_4" |
   "ta_5" | "i_5" | "tu_5" |
   "ta_6" | "i_6" | "tu_6" |
+  "ta_7" | "i_7" | "tu_7" |
   "tmax"
 
 const getLevel = (n: PNameType): integer => {
   const [_, level] = n.split("_")
   if (level === undefined) {
-    return 7
+    return 8
   }
   return parseInt(level, 10) - 1;
 }
 export class PName {
-  static ta_: PNameType[] = ["ta_1", "ta_2", "ta_3", "ta_4", "ta_5", "ta_6"]
-  static i_: PNameType[] = ["i_1", "i_2", "i_3", "i_4", "i_5", "i_6"]
-  static tu_: PNameType[] = ["tu_1", "tu_2", "tu_3", "tu_4", "tu_5", "tu_6"]
+  static ta_: PNameType[] = ["ta_1", "ta_2", "ta_3", "ta_4", "ta_5", "ta_6", "ta_7"]
+  static i_: PNameType[] = ["i_1", "i_2", "i_3", "i_4", "i_5", "i_6", "i_7"]
+  static tu_: PNameType[] = ["tu_1", "tu_2", "tu_3", "tu_4", "tu_5", "tu_6", "tu_7"]
   static pname(names: PNameType[], level: integer): PNameType {
     level = level >>> 0;
     if (Board.maxLevel <= level) { return "tmax" };
@@ -214,7 +215,7 @@ class ProducePhase extends Phase {
 }
 
 export class Board {
-  static get maxLevel(): integer { return 6 }
+  static get maxLevel(): integer { return 7 }
   // static get maxLevel(): integer { return 2 }
   get wh() { return { w: 6, h: 8 } };
   phase: Phase = new ProducePhase(this, 1)

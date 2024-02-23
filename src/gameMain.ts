@@ -21,7 +21,7 @@ const stringize = (n: integer, r: integer = 0): integer[] => {
 }
 
 const TSizeMap = new Map<integer, integer>(
-  [[1, 59], [2, 64], [3, 69], [4, 74], [5, 79], [6, 85]])
+  [[1, 59], [2, 62], [3, 66], [4, 71], [5, 75], [6, 80], [7, 85]])
 
 export class GameMain extends BaseScene {
   board = new Board((Math.random() * (1 << 31)) | 0);

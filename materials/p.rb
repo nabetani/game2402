@@ -1,4 +1,4 @@
-L=6
+L=7
 all=[]
 sizes=[]
 (1..L).each do |level|

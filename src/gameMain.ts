@@ -6,7 +6,8 @@ import { WStorage } from './wstorage';
 
 const depth = {
   bg: 0,
-  tights: 20
+  tights: 20,
+  prodGauge: 21,
 };
 
 const stringize = (n: integer, r: integer = 0): integer[] => {
@@ -26,6 +27,7 @@ const TSizeMap = new Map<integer, integer>(
 export class GameMain extends BaseScene {
   board = new Board((Math.random() * (1 << 31)) | 0);
   nums: Phaser.GameObjects.Sprite[] = []
+  prodGauge: Phaser.GameObjects.Graphics | null = null
   constructor() {
     console.log("GameMain.ctor");
     super("GameMain")
@@ -167,10 +169,45 @@ export class GameMain extends BaseScene {
       this.nums.push(this.add.sprite(x, y, "nums", n).setOrigin(0.5, 0.5))
     }
   }
+  showProGauge() {
+    this.prodGauge = this.prodGauge ?? this.add.graphics({
+      lineStyle: { color: 0x990000, width: 3, alpha: 0.5 }
+    })
+    this.prodGauge.clear().setDepth(depth.prodGauge)
+    const c = this.board.produceCount
+    if (c === null) {
+      return
+    }
+    const { width, height } = this.canvas()
+    const g = 50
+    const w = width - g * 2
+    for (const i of U.range(0, 10)) {
+      const x = g + w * i / 10
+      const { a, rh } = (() => {
+        if (c * 10 < i) { return { a: 0.1, rh: 1 } }
+        if (c * 10 < i + 1) {
+          return { a: 0.5, rh: c * 10 - i }
+        }
+        return { a: 0.5, rh: 1 }
+      })()
+      this.prodGauge.fillStyle(0xff0000, a)
+      const yc = 165
+      const gh0 = 40
+      const y0 = yc - gh0 / 2
+      const y = yc - rh * gh0 / 2
+      const gw = w / 11
+      const gh = rh * gh0
+      const r0 = 10
+      const r = Math.min(r0, rh * 50)
+      this.prodGauge.fillRoundedRect(x, y, gw, gh, r)
+      this.prodGauge.strokeRoundedRect(x, y0, gw, gh0, r0)
+    }
+  }
   updateBoard() {
     const preGO = this.board.isGameOver
     this.board.update();
     this.showScore()
+    this.showProGauge();
     const unchecked = new Set<string>();
     for (const k of this.piecies.keys()) {
       unchecked.add(k);

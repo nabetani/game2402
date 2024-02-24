@@ -106,6 +106,7 @@ abstract class Phase {
   }
   abstract get movings(): Movings
   abstract get isGameOver(): boolean
+  abstract get produceCount(): number
 }
 
 type Move = {
@@ -124,6 +125,7 @@ class GatherPhase extends Phase {
     this.moves = board.getMoves(x, y)
   }
   get isGameOver(): boolean { return false }
+  get produceCount(): number { return 0 }
 
   get movings(): Movings {
     const m = this.moves.map((e) => e.p)
@@ -183,6 +185,7 @@ class FusionPhase extends Phase {
     }
   }
   get isGameOver(): boolean { return false }
+  get produceCount(): number { return 0 }
   get movings(): Movings {
     const t = Math.min(1, Math.max(0, 1 - this.tick / 10))
     if (this.m && this.m[0]) {
@@ -200,10 +203,11 @@ class ProducePhase extends Phase {
     super(board)
     this.tick = t
   }
+  get produceInterval(): number { return 240 }
   update(): void {
     ++this.tick
-    const N = 240
-    if (this.tick % N == 1) {
+    const N = this.produceInterval
+    if (this.tick % N == 1) { // 移動直後の生成のために 1 で判断
       this.board.add()
       this.board.phase = new FusionPhase(this.board, 1)
     }
@@ -212,6 +216,11 @@ class ProducePhase extends Phase {
       b.phase = new GatherPhase(b, b.lastTouch.x, b.lastTouch.y)
       b.lastTouch = null
     }
+  }
+  get produceCount(): number {
+    const N = this.produceInterval
+    const rest = (this.tick + N) % N
+    return rest / N
   }
   get isGameOver(): boolean {
     return this.board.pieces.size == this.board.wh.h * this.board.wh.w
@@ -232,6 +241,7 @@ export class Board {
   tick: integer = 0
   lastTouch: { x: integer, y: integer } | null = null;
   score: number = 0
+  isGameOver: boolean = false
 
   addPiece(p: Piece) {
     this.pieces.set(p.id, p)
@@ -295,6 +305,11 @@ export class Board {
     this.rng = new U.Rng([seed]);
     this.initBoard()
   }
+  get produceCount(): null | number {
+    if (this.isGameOver) { return null }
+    return this.phase.produceCount
+  }
+
   lessUsedNames(level: integer, x: integer, y: integer): PNameType[] {
     let u = new Map<string, [PNameType, number]>();
     for (const t of [PName.ta(level), PName.i(level), PName.tu(level)]) {
@@ -338,12 +353,13 @@ export class Board {
     this.addPiece(Piece.d(names[0], x, y))
     // this.phase = new FusionPhase(this);
   }
-  get isGameOver(): boolean {
+  getIsGameOver(): boolean {
     return this.phase.isGameOver
   }
   update() {
     this.incAge()
     this.phase.update()
+    this.isGameOver ||= this.getIsGameOver()
   }
 
   removeP(x: integer, y: integer): Piece | null {

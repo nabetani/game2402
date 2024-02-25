@@ -421,6 +421,16 @@ export class Board {
     }
     return []
   }
+  getBest(): { lv: number, count: number } {
+    const m = new Map<number, number>();
+    let best = 0
+    for (const p of this.pieces.values()) {
+      m.set(p.level, (m.get(p.level) ?? 0) + 1)
+      best = Math.max(p.level, best)
+    }
+    return { lv: best, count: m.get(best) ?? 0 }
+  }
+
   pieceAt(x: integer, y: integer): Piece | null {
     for (const p of this.pieces.values()) {
       if (p.pos.x == x && p.pos.y == y) {

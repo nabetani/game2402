@@ -7,7 +7,9 @@ import { WStorage } from './wstorage';
 const depth = {
   bg: 0,
   tights: 20,
-  prodGauge: 21,
+  prodGauge: 40,
+  resText: 40,
+  score: 30,
 };
 
 const stringize = (n: integer, r: integer = 0): integer[] => {
@@ -166,7 +168,7 @@ export class GameMain extends BaseScene {
       const x = (ix - (text.length - 1) / 2) * w + width / 2
       const y = h * 0.7
       const n = text[ix]
-      this.nums.push(this.add.sprite(x, y, "nums", n).setOrigin(0.5, 0.5))
+      this.nums.push(this.add.sprite(x, y, "nums", n).setOrigin(0.5, 0.5).setDepth(depth.score))
     }
   }
   showProGauge() {
@@ -233,9 +235,24 @@ export class GameMain extends BaseScene {
   updateGameover() {
     this.updateBoard()
   }
+  addResultText(best: { lv: number, count: number }, y: number) {
+    const { width, height } = this.canvas();
+    const t = this.add.text(width / 2, y - 30, this.bestTightsText(best), {
+      fontFamily: 'sans-serif',
+      fontSize: "20px",
+      fontStyle: "bold",
+      padding: { x: 30, y: 30 },
+      color: "white"
+    }).setDepth(depth.resText).setOrigin(0.5, 0)
+    const s = width / t.getBounds().width
+    t.setFontSize(`${s * 20}px`)
+    t.setShadow(2, 2, 'black', 5, false, true);
+  }
   gameOver() {
     const { width, height } = this.canvas();
-    this.add.image(width / 2, 150, "gameover");
+    const best = this.board.getBest()
+    const im = this.add.image(width / 2, 150, "gameover");
+    this.addResultText(best, im.getBounds().bottom)
     WStorage.addScore(this.board.score)
     console.log({ scores: WStorage.bestScores, cur: this.board.score })
     this.updateProc = () => { this.updateGameover() }

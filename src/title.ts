@@ -109,7 +109,7 @@ export class Title extends BaseScene {
     const pad = 15
     g.fillStyle(0xffffff, 0.4);
     g.fillRoundedRect(rc.left - pad, rc.top - pad, rcW + pad * 2, rc.height + pad * 2, pad)
-    g.lineStyle(10, 0x888888, 1)
+    g.lineStyle(10, 0xffffff, 1)
     g.strokeRoundedRect(rc.left - pad, rc.top - pad, rcW + pad * 2, rc.height + pad * 2, pad)
   }
   showScores() {
@@ -136,18 +136,18 @@ export class Title extends BaseScene {
     }
     const x0 = 50
     const x1 = x0 + 20
-    if (best || lastBest) {
+    if (best !== null || lastBest !== null) {
       writeScore(x0, "最高タイツレベル")
-      if (best) { writeScore(x1, "過去最高: " + this.bestTightsText(best)) }
-      if (lastBest) { writeScore(x1, "最新結果: " + this.bestTightsText(lastBest)) }
+      if (best !== null) { writeScore(x1, "過去最高: " + this.bestTightsText(best)) }
+      if (lastBest !== null) { writeScore(x1, "最新結果: " + this.bestTightsText(lastBest)) }
       this.drawBox(rc!)
     }
     rc = null
-    if (score || lastScore) {
-      y += 40
+    if (score !== null || lastScore !== null) {
+      y += 60
       writeScore(x0, "スコア")
-      if (score) { writeScore(x1, "過去最高: " + stringizeScore(score) + "点") }
-      if (lastScore) { writeScore(x1, "最新結果: " + stringizeScore(lastScore) + "点") }
+      if (score !== null) { writeScore(x1, "過去最高: " + stringizeScore(score) + "点") }
+      if (lastScore !== null) { writeScore(x1, "最新結果: " + stringizeScore(lastScore) + "点") }
       this.drawBox(rc!)
     }
   }

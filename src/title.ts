@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { BaseScene } from './baseScene';
+import { BaseScene, stringizeScore } from './baseScene';
 import { WStorage } from './wstorage';
 
 const depth = {
@@ -7,15 +7,6 @@ const depth = {
   scores: 20,
   rule: 30,
 };
-
-const stringizeScore = (i: integer): string => {
-  const s0 = `${i}`
-  const oku = s0.slice(0, -8)
-  const restO = s0.slice(-8)
-  const man = restO.slice(0, -4)
-  const restM = restO.slice(-4)
-  return (oku == "" ? "" : oku + "億") + (man == "" ? "" : man + "万") + restM
-}
 
 export class Title extends BaseScene {
   constructor() {
@@ -28,7 +19,7 @@ export class Title extends BaseScene {
     const { width, height } = this.canvas();
     // const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x727171, 1);
     this.add.image(width / 2, height / 2, "title");
-    const start = this.add.text(width / 2, height / 2 + 50, "Start", {
+    const start = this.add.text(width / 2, height / 2 + 150, "Start", {
       fontFamily: 'sans-serif',
       color: "black",
       backgroundColor: "#fff6",
@@ -110,44 +101,54 @@ export class Title extends BaseScene {
     }
     return objs;
   }
+  drawBox(rc: Phaser.Geom.Rectangle) {
+    const { width, height } = this.canvas()
+    const right = width - rc.left
+    const rcW = right - rc.left
+    const g = this.add.graphics().setDepth(depth.scoreBase)
+    const pad = 15
+    g.fillStyle(0xffffff, 0.4);
+    g.fillRoundedRect(rc.left - pad, rc.top - pad, rcW + pad * 2, rc.height + pad * 2, pad)
+    g.lineStyle(10, 0x888888, 1)
+    g.strokeRoundedRect(rc.left - pad, rc.top - pad, rcW + pad * 2, rc.height + pad * 2, pad)
+  }
   showScores() {
     let y = 200
-    const { width, height } = this.canvas()
     const style: Phaser.Types.GameObjects.Text.TextStyle = {
       fontFamily: 'monospace',
       color: "black",
       padding: { x: 3, y: 3 },
-      fontSize: "22px",
+      fontSize: "20px",
       // backgroundColor: "#ffffff66",
       lineSpacing: 10,
     };
-    const bests = WStorage.bestScores
-    let x = null
+    const score = (WStorage.bestScores ?? [])[0]
+    const best = (WStorage.bests ?? [])[0]
+    const lastScore = WStorage.lastScore
+    const lastBest = WStorage.lastBest
+
     let rc: Phaser.Geom.Rectangle | null = null
-    const writeScore = (o: number, rank: string) => {
-      const score = `${stringizeScore(o)}点`
-      const t = this.add.text(450, y, score, style)
-      t.setOrigin(1, 0).setDepth(depth.scores)
-      x ??= t.getBounds().left - 10
-      const r = this.add.text(x, y, rank, style).setOrigin(1, 0).setDepth(depth.scores)
-      y = t.getBounds().bottom + 10
+    const writeScore = (x: number, s: string) => {
+      const t = this.add.text(x, y, s, style);
+      t.setOrigin(0, 0).setDepth(depth.scores)
       rc = Phaser.Geom.Rectangle.Union(rc ?? t.getBounds(), t.getBounds())
-      rc = Phaser.Geom.Rectangle.Union(rc, r.getBounds())
+      y = rc!.bottom + 5
     }
-    if (0 < bests.length) {
-      bests.forEach((o, ix) => {
-        writeScore(o, ["1位", "2位", "3位"][ix])
-      })
+    const x0 = 50
+    const x1 = x0 + 20
+    if (best || lastBest) {
+      writeScore(x0, "最高タイツレベル")
+      if (best) { writeScore(x1, "過去最高: " + this.bestTightsText(best)) }
+      if (lastBest) { writeScore(x1, "最新結果: " + this.bestTightsText(lastBest)) }
+      this.drawBox(rc!)
     }
-    const latest = WStorage.lastScore
-    if (latest && 0 < latest) {
-      y += 20
-      writeScore(latest, "最新")
-    }
-    if (rc != null) {
-      let rcc: Phaser.Geom.Rectangle = rc
-      this.add.rectangle(rcc.centerX, rcc.centerY, rcc.width, rcc.height, 0xffffff)
-        .setDepth(depth.scoreBase).setAlpha(0.5)
+    rc = null
+    if (score || lastScore) {
+      y += 40
+      writeScore(x0, "スコア")
+      if (score) { writeScore(x1, "過去最高: " + stringizeScore(score) + "点") }
+      if (lastScore) { writeScore(x1, "最新結果: " + stringizeScore(lastScore) + "点") }
+      this.drawBox(rc!)
     }
   }
   addLinks() {

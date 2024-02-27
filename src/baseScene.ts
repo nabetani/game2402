@@ -1,5 +1,14 @@
 import * as Phaser from 'phaser';
 
+export const stringizeScore = (i: integer): string => {
+  const s0 = `${i}`
+  const oku = s0.slice(0, -8)
+  const restO = s0.slice(-8)
+  const man = restO.slice(0, -4)
+  const restM = restO.slice(-4)
+  return (oku == "" ? "" : oku + "億") + (man == "" ? "" : man + "万") + restM
+}
+
 export class BaseScene extends Phaser.Scene {
   get tag(): string { return "合成タイツ"; }
 

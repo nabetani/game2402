@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { BaseScene } from './baseScene';
+import { BaseScene, stringizeScore } from './baseScene';
 import { Board, Piece, State } from './board';
 import * as U from './util'
 import { WStorage } from './wstorage';
@@ -36,6 +36,7 @@ export class GameMain extends BaseScene {
   }
   preload() {
     console.log("GameMain.preload");
+    this.load.image("share", `assets/share.webp`);
     this.load.image("gameover", `assets/gameover.webp`);
     this.load.image("tmax", `assets/tmax.webp`);
     for (const i of U.range(1, Board.maxLevel + 1)) {
@@ -235,25 +236,46 @@ export class GameMain extends BaseScene {
   updateGameover() {
     this.updateBoard()
   }
-  addResultText(best: { lv: number, count: number }, y: number) {
+  addResultText(text: string, y: number) {
     const { width, height } = this.canvas();
-    const t = this.add.text(width / 2, y - 30, this.bestTightsText(best), {
+    const t = this.add.text(width / 3, y - 30, text, {
       fontFamily: 'sans-serif',
-      fontSize: "20px",
+      fontSize: "14px",
       fontStyle: "bold",
       padding: { x: 30, y: 30 },
       color: "white"
     }).setDepth(depth.resText).setOrigin(0.5, 0)
-    const s = width / t.getBounds().width
+    const s = width / t.getBounds().width / 1.7
     t.setFontSize(`${s * 20}px`)
     t.setShadow(2, 2, 'black', 5, false, true);
+  }
+  addShare(rec: string, score: string, y: number) {
+    const { width, height } = this.canvas();
+    const share = this.add.image(width * 0.66, y, "share").setOrigin(0, 0)
+    const text = [
+      `記録: ${score}点 / ${rec}`,
+      `#合成タイツ`,
+      "https://nabetani.sakura.ne.jp/game24c/",
+    ].join("\n");
+
+
+    share.on('pointerdown', () => {
+      const encoded = encodeURIComponent(text);
+      const url = "https://taittsuu.com/share?text=" + encoded;
+      if (!window.open(url)) {
+        location.href = url;
+      }
+    }).setInteractive();
   }
   gameOver() {
     const { width, height } = this.canvas();
     const best = this.board.getBest()
     const im = this.add.image(width / 2, 150, "gameover");
-    this.addResultText(best, im.getBounds().bottom)
+    const text = this.bestTightsText(best)
+    this.addShare(text, stringizeScore(this.board.score), im.getBounds().bottom)
+    this.addResultText(text, im.getBounds().bottom)
     WStorage.addScore(this.board.score)
+    WStorage.addBest(best)
     console.log({ scores: WStorage.bestScores, cur: this.board.score })
     this.updateProc = () => { this.updateGameover() }
   }

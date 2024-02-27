@@ -37,4 +37,17 @@ export class WStorage {
     s.sort((a, b) => b - a)
     storeWS(GENERAL, "bestScores", s.slice(0, 3));
   }
+  static get bests(): { lv: number; count: number; }[] {
+    return readWS<{ lv: number; count: number; }[]>(GENERAL, "bests", []);
+  }
+  static get lastBest(): { lv: number; count: number; } | null {
+    return readWS<{ lv: number; count: number; } | null>(GENERAL, "lastBest", null);
+  }
+  static addBest(b: { lv: number; count: number; }) {
+    storeWS(GENERAL, "lastBest", b)
+    const s = [...this.bests, b]
+    const ev = (x: { lv: number, count: number }): number => x.lv * 10000 + x.count;
+    s.sort((a, b) => ev(b) - ev(a))
+    storeWS(GENERAL, "bests", s.slice(0, 3));
+  }
 }

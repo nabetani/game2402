@@ -15,7 +15,7 @@ export class Title extends BaseScene {
   preload() {
     this.load.image("title", `assets/title.webp`);
   }
-  create(data: { soundOn: boolean | undefined }) {
+  create() {
     const { width, height } = this.canvas();
     // const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x727171, 1);
     this.add.image(width / 2, height / 2, "title");
@@ -29,7 +29,7 @@ export class Title extends BaseScene {
     start.setOrigin(0.5, 0.5);
     start.setInteractive();
     start.on("pointerdown", () => {
-      this.scene.start('GameMain', { soundOn: true });
+      this.scene.start('GameMain');
     });
     const ruleBtn = this.add.text(width / 2, start.getBounds().top - 30, "ルール説明", {
       fontFamily: 'sans-serif',

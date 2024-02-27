@@ -10,6 +10,8 @@ const depth = {
   prodGauge: 40,
   resText: 40,
   score: 30,
+  gotoTitle: 31,
+  gotoTitleBack: 30,
 };
 
 const stringize = (n: integer, r: integer = 0): integer[] => {
@@ -67,7 +69,7 @@ export class GameMain extends BaseScene {
     return new Phaser.Geom.Rectangle(g, height - hpix - g, wpix, hpix);
   }
 
-  create(data: { soundOn: boolean | undefined }) {
+  create() {
     const o = this.game.textures.get("t1")
     console.log({ cache: o })
     for (const i of U.range(1, Board.maxLevel + 1)) {
@@ -158,18 +160,22 @@ export class GameMain extends BaseScene {
   }
   showScore() {
     const { width, height } = this.canvas();
-    const text = [...stringize(this.board.score), 12]
+    const text = [...stringize(this.board.score + 1e10 / 13), 12]
     for (const s of this.nums) {
       s.destroy()
     }
     this.nums = []
     const w = 42
     const h = 70
+    const scale = Math.min(width / (w * text.length), 1);
     for (const ix of U.range(0, text.length)) {
-      const x = (ix - (text.length - 1) / 2) * w + width / 2
-      const y = h * 0.7
+      const x = (ix - (text.length - 1) / 2) * w * scale + width / 2
+      const y = 75
       const n = text[ix]
-      this.nums.push(this.add.sprite(x, y, "nums", n).setOrigin(0.5, 0.5).setDepth(depth.score))
+      this.nums.push(this.add.sprite(x, y, "nums", n)
+        .setOrigin(0.5, 0.5)
+        .setScale(scale)
+        .setDepth(depth.score))
     }
   }
   showProGauge() {
@@ -267,13 +273,37 @@ export class GameMain extends BaseScene {
       }
     }).setInteractive();
   }
+  addGoToTitle() {
+    const y = 47
+    const t = this.add.text(0, 0, "Go to TITLE", {
+      fontFamily: "sans-serif",
+      fontSize: "30px",
+      fontStyle: "bold",
+      padding: { x: 2, y: 2 },
+      color: "black"
+    }).setOrigin(0, 0).setDepth(depth.gotoTitle);
+    const rc = t.getBounds();
+    const g = rc.height / 5
+    this.add.polygon(0, 0, [
+      0, 0,
+      0, rc.bottom,
+      rc.right, rc.bottom,
+      rc.right + g, rc.bottom - g,
+      rc.right + g, 0,
+    ], 0xffffff, 0.5)
+      .setOrigin(0, 0).setDepth(depth.gotoTitleBack)
+      .setInteractive().on("pointerdown", () => {
+        this.scene.start('Title');
+      });
+  }
   gameOver() {
     const { width, height } = this.canvas();
     const best = this.board.getBest()
-    const im = this.add.image(width / 2, 150, "gameover");
+    const im = this.add.image(width / 2, 150, "gameover").setScale(0.7);
     const text = this.bestTightsText(best)
     this.addShare(text, stringizeScore(this.board.score), im.getBounds().bottom)
     this.addResultText(text, im.getBounds().bottom)
+    this.addGoToTitle()
     WStorage.addScore(this.board.score)
     WStorage.addBest(best)
     console.log({ scores: WStorage.bestScores, cur: this.board.score })

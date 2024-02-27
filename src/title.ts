@@ -43,6 +43,30 @@ export class Title extends BaseScene {
     ruleBtn.on("pointerdown", () => { this.showRule() });
     this.addLinks()
     this.showScores()
+    const soundBtns: Phaser.GameObjects.Text[] = [];
+    const setSoundOn = (on: boolean) => {
+      soundBtns[1].setScale(on ? 1 : 0.7);
+      soundBtns[0].setScale(on ? 0.7 : 1);
+      WStorage.setSoundOn(on)
+    };
+    for (const { str, on } of [
+      { str: "Sound OFF", on: false },
+      { str: "Sound ON", on: true },
+    ]) {
+      const x = soundBtns.length == 0 ? width : soundBtns.slice(-1)[0].getBounds().left - 10
+      const t = this.add.text(0, 0, str, {
+        fontFamily: "sans-serif",
+        fontSize: "30px",
+        fontStyle: "bold",
+        backgroundColor: "#fff8",
+        color: "black",
+      }).setOrigin()
+      const b = t.getBounds()
+      t.setPosition(x - b.width / 2, b.height / 2 + 10)
+      t.setInteractive().on("pointerdown", () => setSoundOn(on));
+      soundBtns.push(t);
+    }
+    setSoundOn(WStorage.soundOn);
   }
   showRule() {
     const { width, height } = this.sys.game.canvas;
@@ -58,7 +82,7 @@ export class Title extends BaseScene {
       "　L = (合成のために失われるタイツの最高レベル)",
       "　増えるスコア = (10のL乗)×N",
       "",
-      "画面上端のゲージが右端に達したときと、なにか操作をした場合、Level 1 タイツが生まれます。",
+      "画面上端のゲージが右端に達したときと、なにか操作をした場合、盤面上に Level 1 タイツが生まれます。",
       "",
       "すべてのマスがタイツで埋まってしまったらゲームオーバーです。",
     ].join("\n");

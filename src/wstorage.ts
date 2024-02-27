@@ -31,6 +31,12 @@ export class WStorage {
   static get lastScore(): integer | null {
     return readWS<integer | null>(GENERAL, "lastScore", null);
   }
+  static get soundOn(): boolean {
+    return readWS<boolean>(GENERAL, "soundOn", false);
+  }
+  static setSoundOn(sw: boolean) {
+    storeWS(GENERAL, "soundOn", sw);
+  }
   static addScore(s0: integer) {
     storeWS(GENERAL, "lastScore", s0)
     const s = [...this.bestScores, s0]

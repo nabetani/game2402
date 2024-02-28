@@ -233,6 +233,7 @@ class ProducePhase extends Phase {
 
 export interface BoardEvent {
   onPieceAdded(): void;
+  onFusion(lv: number): void;
 }
 
 export class Board {
@@ -266,7 +267,7 @@ export class Board {
   }
 
   initBoard() {
-    if (true) {
+    const game = () => {
       const x = this.rng.shuffle([...U.range(0, this.wh.w)]);
       const y = this.rng.shuffle([...U.range(0, this.wh.h)]);
       const p = this.rng.shuffle<PNameType>([PName.ta(0), PName.i(0), PName.tu(0)]);
@@ -275,18 +276,8 @@ export class Board {
       for (const i of U.range(0, m)) {
         this.addPiece(Piece.d(p[i % p.length], x[i], y[i]), false);
       }
-    } else if (true) {
-      const names: PNameType[] = ["tmax"]
-      for (const l of U.range(0, Board.maxLevel)) {
-        names.push(PName.ta(l), PName.i(l), PName.tu(l))
-      }
-      for (const y of U.range(1, this.wh.h)) {
-        for (const x of U.range(0, this.wh.w)) {
-          const n = names[((x + y * this.wh.h) * 17) % names.length]
-          this.addPiece(Piece.d(n, x, y), false);
-        }
-      }
-    } else {
+    }
+    const automatic = () => {
       const s = [PName.ta(0), PName.i(0), PName.tu(0)]
       for (const y of U.range(0, this.wh.h)) {
         for (const x of U.range(0, this.wh.w)) {
@@ -306,6 +297,17 @@ export class Board {
         }
       }
     }
+    const fusionTest = () => {
+      const s = [PName.ta(0), PName.i(0), PName.tu(0)]
+      for (const y of U.range(0, Board.maxLevel + 1)) {
+        this.addPiece(Piece.d(PName.ta(y), 0, y), false);
+        this.addPiece(Piece.d(PName.i(y), 2, y), false);
+        this.addPiece(Piece.d(PName.tu(y), 4, y), false);
+      }
+    }
+    game()
+    // automatic()
+    // fusio1nTest()
     console.log({ "Board.initBoard": this.pieces });
   }
 
@@ -499,6 +501,8 @@ export class Board {
     }
     if (0 < mate.length) {
       const maxLevel = Math.max(...mate.map((p) => p.level))
+      this.bevent.onFusion(maxLevel)
+
       const dscore = 10 * (10 ** maxLevel) * (mate.length - 2);
       console.log({ dscore: dscore, maxLevel: maxLevel, tcount: mate.length })
       this.score += dscore

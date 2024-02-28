@@ -43,6 +43,9 @@ export class GameMain extends BaseScene implements BoardEvent {
     this.load.image("gameover", `assets/gameover.webp`);
     this.load.image("tmax", `assets/tmax.webp`);
     this.load.audio("birth", "assets/birth.m4a");
+    for (const i of U.range(0, 7)) {
+      this.load.audio(`fusion${i}`, `assets/fusion${i}.m4a`);
+    }
     for (const i of U.range(1, Board.maxLevel + 1)) {
       const name = `t${i}`
       const wh = TSizeMap.get(i)!
@@ -74,6 +77,9 @@ export class GameMain extends BaseScene implements BoardEvent {
   create() {
     this.soundOn = WStorage.soundOn
     this.sound.add("birth");
+    for (const i of U.range(0, 7)) {
+      this.sound.add(`fusion${i}`);
+    }
     const o = this.game.textures.get("t1")
     console.log({ cache: o })
     for (const i of U.range(1, Board.maxLevel + 1)) {
@@ -100,6 +106,9 @@ export class GameMain extends BaseScene implements BoardEvent {
   }
   onPieceAdded(): void {
     this.playSound("birth")
+  }
+  onFusion(lv: number): void {
+    this.playSound(`fusion${lv}`)
   }
   drawBoard() {
     const { w, h } = this.board.wh;
@@ -312,7 +321,7 @@ export class GameMain extends BaseScene implements BoardEvent {
     const { width, height } = this.canvas();
     const best = this.board.getBest()
     const im = this.add.image(width / 2, 150, "gameover").setScale(0.7);
-    const text = this.bestTightsText(best)
+    const text = this.bestTightsText(best)!
     this.addShare(text, stringizeScore(this.board.score), im.getBounds().bottom)
     this.addResultText(text, im.getBounds().bottom)
     this.addGoToTitle()

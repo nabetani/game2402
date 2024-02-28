@@ -21,7 +21,10 @@ export class BaseScene extends Phaser.Scene {
       location.href = url;
     }
   }
-  bestTightsText(best: { lv: number, count: number }): string {
+  bestTightsText(best: { lv: number, count: number }): string | null {
+    if (!best || !best.lv) {
+      return null;
+    }
     const t = ((): string => {
       const name = (new Map<number, string>([
         [1, "普通の"],

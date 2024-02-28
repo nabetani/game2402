@@ -160,18 +160,18 @@ export class Title extends BaseScene {
     }
     const x0 = 50
     const x1 = x0 + 20
-    if (best !== null || lastBest !== null) {
+    if (best != null || lastBest != null) {
       writeScore(x0, "最高タイツレベル")
-      if (best !== null) { writeScore(x1, "過去最高: " + this.bestTightsText(best)) }
-      if (lastBest !== null) { writeScore(x1, "最新結果: " + this.bestTightsText(lastBest)) }
+      if (best != null) { writeScore(x1, "過去最高: " + this.bestTightsText(best)) }
+      if (lastBest != null) { writeScore(x1, "最新結果: " + this.bestTightsText(lastBest)) }
       this.drawBox(rc!)
     }
     rc = null
-    if (score !== null || lastScore !== null) {
+    if (score != null || lastScore != null) {
       y += 60
       writeScore(x0, "スコア")
-      if (score !== null) { writeScore(x1, "過去最高: " + stringizeScore(score) + "点") }
-      if (lastScore !== null) { writeScore(x1, "最新結果: " + stringizeScore(lastScore) + "点") }
+      if (score != null) { writeScore(x1, "過去最高: " + stringizeScore(score) + "点") }
+      if (lastScore != null) { writeScore(x1, "最新結果: " + stringizeScore(lastScore) + "点") }
       this.drawBox(rc!)
     }
   }

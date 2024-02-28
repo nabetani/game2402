@@ -214,6 +214,7 @@ class ProducePhase extends Phase {
     const b = this.board
     if (b.lastTouch != null) {
       b.phase = new GatherPhase(b, b.lastTouch.x, b.lastTouch.y)
+      this.board.bevent.onMove()
       b.lastTouch = null
     }
   }
@@ -234,6 +235,7 @@ class ProducePhase extends Phase {
 export interface BoardEvent {
   onPieceAdded(): void;
   onFusion(lv: number): void;
+  onMove(): void;
 }
 
 export class Board {

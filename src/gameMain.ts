@@ -43,6 +43,7 @@ export class GameMain extends BaseScene implements BoardEvent {
     this.load.image("gameover", `assets/gameover.webp`);
     this.load.image("tmax", `assets/tmax.webp`);
     this.load.audio("birth", "assets/birth.m4a");
+    this.load.audio("move", "assets/move.m4a");
     for (const i of U.range(0, 7)) {
       this.load.audio(`fusion${i}`, `assets/fusion${i}.m4a`);
     }
@@ -76,7 +77,9 @@ export class GameMain extends BaseScene implements BoardEvent {
 
   create() {
     this.soundOn = WStorage.soundOn
-    this.sound.add("birth");
+    for (const n of ["birth", "move"]) {
+      this.sound.add(n)
+    }
     for (const i of U.range(0, 7)) {
       this.sound.add(`fusion${i}`);
     }
@@ -103,6 +106,9 @@ export class GameMain extends BaseScene implements BoardEvent {
     if (this.soundOn) {
       this.sound.get(name).play(conf);
     }
+  }
+  onMove(): void {
+    this.playSound("move")
   }
   onPieceAdded(): void {
     this.playSound("birth")

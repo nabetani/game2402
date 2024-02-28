@@ -44,6 +44,7 @@ export class GameMain extends BaseScene implements BoardEvent {
     this.load.image("tmax", `assets/tmax.webp`);
     this.load.audio("birth", "assets/birth.m4a");
     this.load.audio("move", "assets/move.m4a");
+    this.load.audio("bgm", "assets/bgm.m4a");
     for (const i of U.range(0, 7)) {
       this.load.audio(`fusion${i}`, `assets/fusion${i}.m4a`);
     }
@@ -77,12 +78,13 @@ export class GameMain extends BaseScene implements BoardEvent {
 
   create() {
     this.soundOn = WStorage.soundOn
-    for (const n of ["birth", "move"]) {
+    for (const n of ["birth", "move", "bgm"]) {
       this.sound.add(n)
     }
     for (const i of U.range(0, 7)) {
       this.sound.add(`fusion${i}`);
     }
+    this.playSound("bgm", { loop: true, volume: 0.25 })
     const o = this.game.textures.get("t1")
     console.log({ cache: o })
     for (const i of U.range(1, Board.maxLevel + 1)) {
@@ -114,7 +116,7 @@ export class GameMain extends BaseScene implements BoardEvent {
     this.playSound("birth")
   }
   onFusion(lv: number): void {
-    this.playSound(`fusion${lv}`)
+    this.playSound(`fusion${lv}`, { volume: 0.5 })
   }
   drawBoard() {
     const { w, h } = this.board.wh;

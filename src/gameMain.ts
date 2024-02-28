@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { BaseScene, stringizeScore } from './baseScene';
-import { Board, Piece, State } from './board';
+import { Board, Piece, State, BoardEvent } from './board';
 import * as U from './util'
 import { WStorage } from './wstorage';
 
@@ -28,10 +28,11 @@ const stringize = (n: integer, r: integer = 0): integer[] => {
 const TSizeMap = new Map<integer, integer>(
   [[1, 59], [2, 62], [3, 66], [4, 71], [5, 75], [6, 80], [7, 85]])
 
-export class GameMain extends BaseScene {
-  board = new Board((Math.random() * (1 << 31)) | 0);
+export class GameMain extends BaseScene implements BoardEvent {
+  board = new Board((Math.random() * (1 << 31)) | 0, this);
   nums: Phaser.GameObjects.Sprite[] = []
   prodGauge: Phaser.GameObjects.Graphics | null = null
+  soundOn: boolean = false
   constructor() {
     console.log("GameMain.ctor");
     super("GameMain")
@@ -41,6 +42,7 @@ export class GameMain extends BaseScene {
     this.load.image("share", `assets/share.webp`);
     this.load.image("gameover", `assets/gameover.webp`);
     this.load.image("tmax", `assets/tmax.webp`);
+    this.load.audio("birth", "assets/birth.m4a");
     for (const i of U.range(1, Board.maxLevel + 1)) {
       const name = `t${i}`
       const wh = TSizeMap.get(i)!
@@ -70,6 +72,8 @@ export class GameMain extends BaseScene {
   }
 
   create() {
+    this.soundOn = WStorage.soundOn
+    this.sound.add("birth");
     const o = this.game.textures.get("t1")
     console.log({ cache: o })
     for (const i of U.range(1, Board.maxLevel + 1)) {
@@ -77,7 +81,7 @@ export class GameMain extends BaseScene {
     }
     this.add.image(0, 0, 'bg').setOrigin(0, 0).setDepth(depth.bg);
     // this.board = new Board((Math.random() * (1 << 30) * 4) | 0);
-    this.board = new Board((Math.random() * (1 << 31)) | 0);
+    this.board = new Board((Math.random() * (1 << 31)) | 0, this);
     const rc = this.boardBBox
     const ui = this.add.rectangle(rc.centerX, rc.centerY, rc.width, rc.height, 0xff0000, 0)
     ui.setInteractive().on("pointerdown", (_: any, x: number, y: number) => {
@@ -88,6 +92,14 @@ export class GameMain extends BaseScene {
       this.board.touchAt(ix, iy);
     });
     this.drawBoard()
+  }
+  playSound(name: string, conf: Phaser.Types.Sound.SoundConfig | undefined = undefined) {
+    if (this.soundOn) {
+      this.sound.get(name).play(conf);
+    }
+  }
+  onPieceAdded(): void {
+    this.playSound("birth")
   }
   drawBoard() {
     const { w, h } = this.board.wh;

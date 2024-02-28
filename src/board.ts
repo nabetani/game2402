@@ -143,7 +143,7 @@ class GatherPhase extends Phase {
     if (t == 0) {
       for (const m of this.moves) {
         m.p.pos = m.p.dpos()
-        this.board.addPiece(m.p)
+        this.board.addPiece(m.p, false)
       }
       this.board.phase = new FusionPhase(this.board, 0)
     }
@@ -176,7 +176,7 @@ class FusionPhase extends Phase {
         this.tick = 1
         break
       case 10:
-        this.pro.forEach((p) => this.board.addPiece(p));
+        this.pro.forEach((p) => this.board.addPiece(p, false));
         this.m = []
         this.tick = 0
         break
@@ -231,6 +231,10 @@ class ProducePhase extends Phase {
   }
 }
 
+export interface BoardEvent {
+  onPieceAdded(): void;
+}
+
 export class Board {
   static get maxLevel(): integer { return 7 }
   // static get maxLevel(): integer { return 2 }
@@ -242,9 +246,13 @@ export class Board {
   lastTouch: { x: integer, y: integer } | null = null;
   score: number = 0
   isGameOver: boolean = false
+  bevent: BoardEvent
 
-  addPiece(p: Piece) {
+  addPiece(p: Piece, notify: boolean) {
     this.pieces.set(p.id, p)
+    if (notify) {
+      this.bevent.onPieceAdded()
+    }
   }
 
   get movings(): Movings {
@@ -265,9 +273,9 @@ export class Board {
       const m = Math.min(x.length, y.length);
       this.pieces.clear();
       for (const i of U.range(0, m)) {
-        this.addPiece(Piece.d(p[i % p.length], x[i], y[i]));
+        this.addPiece(Piece.d(p[i % p.length], x[i], y[i]), false);
       }
-    } else if (false) {
+    } else if (true) {
       const names: PNameType[] = ["tmax"]
       for (const l of U.range(0, Board.maxLevel)) {
         names.push(PName.ta(l), PName.i(l), PName.tu(l))
@@ -275,7 +283,7 @@ export class Board {
       for (const y of U.range(1, this.wh.h)) {
         for (const x of U.range(0, this.wh.w)) {
           const n = names[((x + y * this.wh.h) * 17) % names.length]
-          this.addPiece(Piece.d(n, x, y));
+          this.addPiece(Piece.d(n, x, y), false);
         }
       }
     } else {
@@ -285,15 +293,15 @@ export class Board {
           if (x < 5 && y < 3) {
             const n = parseInt(["12121", "12023", "32323"][y][x])
             if (0 < n) {
-              this.addPiece(Piece.d(s[n - 1], x, y));
+              this.addPiece(Piece.d(s[n - 1], x, y), false);
             }
           } else if (x < 5 && y < 6) {
             const n = parseInt(["12121", "12023", "32323"][y - 3][x])
             if (0 < n) {
-              this.addPiece(Piece.d(s[n - 1], x, y));
+              this.addPiece(Piece.d(s[n - 1], x, y), false);
             }
           } else {
-            this.addPiece(Piece.d(PName.i(0), x, y));
+            this.addPiece(Piece.d(PName.i(0), x, y), false);
           }
         }
       }
@@ -301,7 +309,8 @@ export class Board {
     console.log({ "Board.initBoard": this.pieces });
   }
 
-  constructor(seed: integer) {
+  constructor(seed: integer, bevent: BoardEvent) {
+    this.bevent = bevent
     this.rng = new U.Rng([seed]);
     this.initBoard()
   }
@@ -346,11 +355,11 @@ export class Board {
     const names = this.lessUsedNames(0, x, y)
     for (const name of names) {
       if (!this.canFusionTights(name, x, y)) {
-        this.addPiece(Piece.d(name, x, y))
+        this.addPiece(Piece.d(name, x, y), true)
         return;
       }
     }
-    this.addPiece(Piece.d(names[0], x, y))
+    this.addPiece(Piece.d(names[0], x, y), true)
     // this.phase = new FusionPhase(this);
   }
   getIsGameOver(): boolean {

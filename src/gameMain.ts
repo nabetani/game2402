@@ -189,7 +189,7 @@ export class GameMain extends BaseScene implements BoardEvent {
   }
   showScore() {
     const { width, height } = this.canvas();
-    const text = [...stringize(this.board.score + 1e10 / 13), 12]
+    const text = [...stringize(this.board.score), 12]
     for (const s of this.nums) {
       s.destroy()
     }

@@ -307,9 +307,9 @@ export class Board {
         this.addPiece(Piece.d(PName.tu(y), 4, y), false);
       }
     }
-    game()
-    // automatic()
-    // fusio1nTest()
+    // game()
+    automatic()
+    // fusionTest()
     console.log({ "Board.initBoard": this.pieces });
   }
 
@@ -513,7 +513,9 @@ export class Board {
     return { mate: mate, pro: pro }
   }
   touchAt(x: integer, y: integer) {
-    this.lastTouch = { x: x, y: y }
+    if (!this.isGameOver) {
+      this.lastTouch = { x: x, y: y }
+    }
   }
 }
 

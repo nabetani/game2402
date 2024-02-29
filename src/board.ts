@@ -213,8 +213,10 @@ class ProducePhase extends Phase {
     }
     const b = this.board
     if (b.lastTouch != null) {
-      b.phase = new GatherPhase(b, b.lastTouch.x, b.lastTouch.y)
-      this.board.bevent.onMove()
+      if (this.board.canMove(b.lastTouch.x, b.lastTouch.y)) {
+        b.phase = new GatherPhase(b, b.lastTouch.x, b.lastTouch.y)
+        this.board.bevent.onMove()
+      }
       b.lastTouch = null
     }
   }
@@ -307,8 +309,8 @@ export class Board {
         this.addPiece(Piece.d(PName.tu(y), 4, y), false);
       }
     }
-    // game()
-    automatic()
+    game()
+    // automatic()
     // fusionTest()
     console.log({ "Board.initBoard": this.pieces });
   }
@@ -385,6 +387,24 @@ export class Board {
     return null
   }
 
+  canMove(x0: integer, y0: integer): boolean {
+    for (const dir of U.range(0, 4)) {
+      const dx = [1, -1, 0, 0][dir];
+      const dy = [0, 0, 1, -1][dir];
+      const d = (dx == 0 ? this.wh.h : this.wh.w) + 1
+      let goal: [number, number] | null = null
+      for (const dist of U.range(1, d)) {
+        const x = x0 + dx * dist;
+        const y = y0 + dy * dist;
+        const xp = x0 + dx * (dist + 1);
+        const yp = y0 + dy * (dist + 1);
+        if (null === this.pieceAt(x, y) && null !== this.pieceAt(xp, yp)) {
+          return true
+        }
+      }
+    }
+    return false;
+  }
   getMoves(x0: integer, y0: integer): Move[] {
     let r: Move[] = []
     for (const dir of U.range(0, 4)) {

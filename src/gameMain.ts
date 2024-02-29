@@ -45,6 +45,7 @@ export class GameMain extends BaseScene implements BoardEvent {
     this.load.audio("birth", "assets/birth.m4a");
     this.load.audio("move", "assets/move.m4a");
     this.load.audio("bgm", "assets/bgm.m4a");
+    this.load.audio("gameover", "assets/gameover.m4a");
     for (const i of U.range(0, 7)) {
       this.load.audio(`fusion${i}`, `assets/fusion${i}.m4a`);
     }
@@ -78,7 +79,7 @@ export class GameMain extends BaseScene implements BoardEvent {
 
   create() {
     this.soundOn = WStorage.soundOn
-    for (const n of ["birth", "move", "bgm"]) {
+    for (const n of ["birth", "move", "bgm", "gameover"]) {
       this.sound.add(n)
     }
     for (const i of U.range(0, 7)) {
@@ -103,6 +104,9 @@ export class GameMain extends BaseScene implements BoardEvent {
       this.board.touchAt(ix, iy);
     });
     this.drawBoard()
+  }
+  stopSound(name: string) {
+    this.sound.get(name).stop()
   }
   playSound(name: string, conf: Phaser.Types.Sound.SoundConfig | undefined = undefined) {
     if (this.soundOn) {
@@ -326,6 +330,8 @@ export class GameMain extends BaseScene implements BoardEvent {
       });
   }
   gameOver() {
+    this.stopSound("bgm");
+    this.playSound("gameover", { volume: 16 });
     const { width, height } = this.canvas();
     const best = this.board.getBest()
     const im = this.add.image(width / 2, 150, "gameover").setScale(0.7);

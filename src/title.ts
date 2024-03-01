@@ -188,7 +188,7 @@ export class Title extends BaseScene {
     [
       ["Source code and license", "https://github.com/nabetani/game2402/"],
       ["鍋谷武典 @ タイッツー", "https://taittsuu.com/users/nabetani"],
-      ["制作ノート", "https://nabetani.hatenadiary.com/entry/2024/01/game24c"],
+      ["制作ノート", "https://nabetani.hatenadiary.com/entry/2024/03/game24c"],
       ["タイッツー #" + this.tag, "https://taittsuu.com/search/taiitsus/hashtags?query=" + this.tag],
     ].forEach((e, ix) => {
       const text = this.add.text(500, y, e[0], style)

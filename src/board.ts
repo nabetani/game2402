@@ -203,7 +203,7 @@ class ProducePhase extends Phase {
     super(board)
     this.tick = t
   }
-  get produceInterval(): number { return 240 }
+  get produceInterval(): number { return this.board.produceInterval | 0 }
   update(): void {
     ++this.tick
     const N = this.produceInterval
@@ -243,11 +243,11 @@ export interface BoardEvent {
 export class Board {
   static get maxLevel(): integer { return 7 }
   // static get maxLevel(): integer { return 2 }
-  get wh() { return { w: 6, h: 8 } };
+  get wh() { return { w: 5, h: 7 } };
   phase: Phase = new ProducePhase(this, 1)
   rng: U.Rng
   pieces: Map<string, Piece> = new Map<string, Piece>();
-  tick: integer = 0
+  produceInterval: number = 240
   lastTouch: { x: integer, y: integer } | null = null;
   score: number = 0
   isGameOver: boolean = false
@@ -312,7 +312,7 @@ export class Board {
     game()
     // automatic()
     // fusionTest()
-    console.log({ "Board.initBoard": this.pieces });
+    // console.log({ "Board.initBoard": this.pieces });
   }
 
   constructor(seed: integer, bevent: BoardEvent) {
@@ -371,7 +371,12 @@ export class Board {
   getIsGameOver(): boolean {
     return this.phase.isGameOver
   }
+  updateProduceInterval() {
+    const lo = 80
+    this.produceInterval = lo + (this.produceInterval - lo) * (1 - 1 / 12000)
+  }
   update() {
+    this.updateProduceInterval()
     this.incAge()
     this.phase.update()
     this.isGameOver ||= this.getIsGameOver()
@@ -388,6 +393,8 @@ export class Board {
   }
 
   canMove(x0: integer, y0: integer): boolean {
+    console.log({ produceInterval: this.produceInterval | 0 })
+
     for (const dir of U.range(0, 4)) {
       const dx = [1, -1, 0, 0][dir];
       const dy = [0, 0, 1, -1][dir];
@@ -430,7 +437,7 @@ export class Board {
         }
       }
     }
-    console.log(r)
+    // console.log(r)
     return r
   }
   fusionIndices(lev: number, x0: number, y0: number, dx: number, dy: number): string[] {
@@ -526,7 +533,7 @@ export class Board {
       this.bevent.onFusion(maxLevel)
 
       const dscore = 10 * (10 ** maxLevel) * (mate.length - 2);
-      console.log({ dscore: dscore, maxLevel: maxLevel, tcount: mate.length })
+      // console.log({ dscore: dscore, maxLevel: maxLevel, tcount: mate.length })
       this.score += dscore
       mate.forEach((p) => this.pieces.delete(p.id))
     }

@@ -54,7 +54,7 @@ export class GameMain extends BaseScene implements BoardEvent {
       const wh = TSizeMap.get(i)!
       this.load.image(name,).on("load", (e: any) => {
         const o = this.game.textures.get(name)
-        console.log({ "e": e, "texture": o })
+        // console.log({ "e": e, "texture": o })
       });
       this.load.spritesheet(name, `assets/${name}.webp`, {
         frameWidth: wh,
@@ -71,13 +71,14 @@ export class GameMain extends BaseScene implements BoardEvent {
   get boardBBox(): Phaser.Geom.Rectangle {
     const { width, height } = this.canvas()
     const { w, h } = this.board.wh
-    const g = -width / 20
+    const g = w / 30
     const wpix = width - g * 2
     const hpix = wpix / w * h
     return new Phaser.Geom.Rectangle(g, height - hpix - g, wpix, hpix);
   }
 
   create() {
+    this.prodGauge = null
     this.soundOn = WStorage.soundOn
     for (const n of ["birth", "move", "bgm", "gameover"]) {
       this.sound.add(n)
@@ -100,7 +101,7 @@ export class GameMain extends BaseScene implements BoardEvent {
       const { w, h } = this.board.wh;
       const ix = Math.floor(x * (w + 2) / rc.width) - 1;
       const iy = Math.floor(y * (h + 2) / rc.height) - 1;
-      console.log({ m: "pointerdown", x: x, y: y, ix: ix, iy: iy });
+      // console.log({ m: "pointerdown", x: x, y: y, ix: ix, iy: iy });
       this.board.touchAt(ix, iy);
     });
     this.drawBoard()
@@ -177,7 +178,7 @@ export class GameMain extends BaseScene implements BoardEvent {
       o = this.add.sprite(0, 0, ...this.tshape(p));
       o.setDepth(depth.tights + p.level)
       this.piecies.set(p.id, o);
-      console.log({ o: o, p: p });
+      // console.log({ o: o, p: p });
     }
     const [x, y] = this.dispPos(p.pos)
     o.setPosition(x, y);

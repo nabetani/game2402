@@ -1,7 +1,7 @@
 {
-  "name": "game2402",
+  "name": "game24c",
   "version": "1.0.0",
-  "description": "browser game (Feb. 2024)",
+  "description": "browser game (2024c)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
